@@ -1,0 +1,29 @@
+GCP Text-to-Speech API Client:
+	- Wrap APIs 
+	- Provide sane defaults
+	- Add API key hook
+	- Validate 5000 characters limit
+	- Get OGG media
+	
+Text processor:
+	- Only support .txt files
+	- Break on large chunks ("chapters")
+	- Break large chunk into "paragraphs"
+	- If needed, break "paragraphs" into "sentences"
+	- Validate that anticipated payload would not have "sentences" more than 5000 characters (or whatever is the limit with other data)
+	
+ffmpeg integration:
+	- generate ffmpeg command to concatenate all chunks into a single m4b audiobook
+	- figure out metadata
+	- should work with LitRes mp3 to concatenate them
+	
+lego app:
+	- add clo cmds and handlers:
+		- synthesize
+			- split .txt file into chapters - paragraphs - sentences
+			- use GCP TTS to convert to OGG
+			- concatenate with ffmpeg
+				- add metadata
+		- bind
+			- concatenate mp3s to m4b
+			- (replace AudioBookBinder in my own setup)
