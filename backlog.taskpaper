@@ -1,16 +1,21 @@
 GCP Text-to-Speech API Client:
-	- Wrap APIs 
+	- Wrap APIs:
+		- https://cloud.google.com/text-to-speech
+		- https://cloud.google.com/text-to-speech/docs/reference/rest/v1/voices/list
+		- https://cloud.google.com/text-to-speech/docs/reference/rest/v1/text/synthesize
 	- Provide sane defaults
 	- Add API key hook
 	- Validate 5000 characters limit
-	- Get OGG media
+	- Get/write out OGG media
 	
 Text processor:
 	- Only support .txt files
-	- Break on large chunks ("chapters")
-	- Break large chunk into "paragraphs"
-	- If needed, break "paragraphs" into "sentences"
-	- Validate that anticipated payload would not have "sentences" more than 5000 characters (or whatever is the limit with other data)
+		- Add documentation to support converting other formats to .txt (https://textract.readthedocs.io/en/stable/)
+	- Break large text files into >5000 characters segments:
+		- Break text into "chapters"
+		- Break large chunk into "paragraphs"
+		- If needed, break "paragraphs" into "sentences"
+		- Validate that anticipated payload would not have "sentences" more than 5000 characters (or whatever is the limit with other data)
 	
 ffmpeg integration:
 	- generate ffmpeg command to concatenate all chunks into a single m4b audiobook
@@ -19,6 +24,7 @@ ffmpeg integration:
 	
 lego app:
 	- add clo cmds and handlers:
+		- list-voices
 		- synthesize
 			- split .txt file into chapters - paragraphs - sentences
 			- use GCP TTS to convert to OGG
