@@ -1,21 +1,22 @@
-GCP Text-to-Speech API Client:
-	- Wrap APIs:
-		- https://cloud.google.com/text-to-speech
-		- https://cloud.google.com/text-to-speech/docs/reference/rest/v1/voices/list
-		- https://cloud.google.com/text-to-speech/docs/reference/rest/v1/text/synthesize
-	- Provide sane defaults
-	- Add API key hook
-	- Validate 5000 characters limit
-	- Get/write out OGG media
-	
-Text processor:
+Text processor (divido):
 	- Only support .txt files
 		- Add documentation to support converting other formats to .txt (https://textract.readthedocs.io/en/stable/)
+			- Calibre
 	- Break large text files into >5000 characters segments:
 		- Break text into "chapters"
 		- Break large chunk into "paragraphs"
 		- If needed, break "paragraphs" into "sentences"
 		- Validate that anticipated payload would not have "sentences" more than 5000 characters (or whatever is the limit with other data)
+		
+Improve results with SSML:
+	- https://learn.microsoft.com/en-us/azure/cognitive-services/speech-service/speech-synthesis-markup-structure
+	- Add paragraph, sentence markers
+	- Replace Significant breaks with pauses
+	- etc
+		
+Azure Cognitive Services text-to-speech API Client:
+	- https://learn.microsoft.com/en-us/azure/cognitive-services/speech-service/index-text-to-speech
+	- Batch Synthesis client: https://learn.microsoft.com/en-us/azure/cognitive-services/speech-service/batch-synthesis
 	
 ffmpeg integration:
 	- generate ffmpeg command to concatenate all chunks into a single m4b audiobook
@@ -33,3 +34,13 @@ lego app:
 		- bind
 			- concatenate mp3s to m4b
 			- (replace AudioBookBinder in my own setup)
+Archive:
+	GCP Text-to-Speech API Client (google-tts-integration): @done(2023-01-03)
+		- Wrap APIs: @done(2023-01-03)
+			- https://cloud.google.com/text-to-speech @done(2023-01-03)
+			- https://cloud.google.com/text-to-speech/docs/reference/rest/v1/voices/list @done(2023-01-03)
+			- https://cloud.google.com/text-to-speech/docs/reference/rest/v1/text/synthesize @done(2023-01-03)
+		- Provide sane defaults @done(2023-01-03)
+		- Add API key hook @done(2023-01-03)
+		- Validate 5000 characters limit @done(2023-01-03)
+		- Get/write out OGG media @done(2023-01-03)
