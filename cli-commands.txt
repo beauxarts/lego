@@ -6,15 +6,20 @@
 # {} - placeholder values
 # {^} - placeholder values, first value is default
 
+bind
+    input-directory
+    ffmpeg-cmd$
+
 info
     filename^*
     cost-per-million-characters
 
 synthesize
-    ffmpeg-cmd$
-    filename^*
+    input-filename^*
     key$
     key-filename$
     voice-locale
     voice-name
     voice-gender
+    output-directory
+    overwrite

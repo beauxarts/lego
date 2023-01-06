@@ -33,6 +33,7 @@ func main() {
 	}
 
 	clo.HandleFuncs(map[string]clo.Handler{
+		"bind":       cli.BindHandler,
 		"info":       cli.InfoHandler,
 		"synthesize": cli.SynthesizeHandler,
 	})
