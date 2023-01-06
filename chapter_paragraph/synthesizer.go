@@ -38,12 +38,19 @@ func NewSynthesizer(
 	voice *gti.VoiceSelectionParams,
 	key string,
 	outputDirectory string,
-	overwrite bool) *Synthesizer {
+	overwrite bool) (*Synthesizer, error) {
+
+	if _, err := os.Stat(outputDirectory); os.IsNotExist(err) {
+		if err := os.MkdirAll(outputDirectory, 0755); err != nil {
+			return nil, err
+		}
+	}
+
 	return &Synthesizer{
 		outputDirectory: outputDirectory,
 		synthesizer:     gti.NewSynthesizer(hc, voice, key),
 		overwrite:       overwrite,
-	}
+	}, nil
 }
 
 func (s *Synthesizer) CreateChapterTitle(chapter int, content string) error {

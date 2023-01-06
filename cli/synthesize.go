@@ -52,14 +52,17 @@ func Synthesize(inputFilename string, voice *gti.VoiceSelectionParams, key, outp
 
 	file, err := os.Open(inputFilename)
 	if err != nil {
-		panic(err)
+		return sa.EndWithError(err)
 	}
 	defer file.Close()
 
 	td := divido.NewTextDocument(file)
 	chapters := td.ChapterTitles()
 
-	cps := chapter_paragraph.NewSynthesizer(http.DefaultClient, voice, key, outputDirectory, overwrite)
+	cps, err := chapter_paragraph.NewSynthesizer(http.DefaultClient, voice, key, outputDirectory, overwrite)
+	if err != nil {
+		return sa.EndWithError(err)
+	}
 
 	sa.TotalInt(len(chapters))
 
