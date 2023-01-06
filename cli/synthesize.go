@@ -1,22 +1,14 @@
 package cli
 
 import (
-	"bytes"
 	"errors"
-	"fmt"
 	"github.com/beauxarts/divido"
 	gti "github.com/beauxarts/google_tts_integration"
+	"github.com/beauxarts/lego/chapter_paragraph"
 	"github.com/boggydigital/nod"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
-	"path/filepath"
-)
-
-const (
-	filenamePaddedDigits  = "09"
-	chapterTitleBreakTime = "1s"
 )
 
 func SynthesizeHandler(u *url.URL) error {
@@ -67,13 +59,13 @@ func Synthesize(inputFilename string, voice *gti.VoiceSelectionParams, key, outp
 	td := divido.NewTextDocument(file)
 	chapters := td.ChapterTitles()
 
-	ncps := newChapterParagraphSynthesizer(http.DefaultClient, voice, key, outputDirectory, overwrite)
+	cps := chapter_paragraph.NewSynthesizer(http.DefaultClient, voice, key, outputDirectory, overwrite)
 
 	sa.TotalInt(len(chapters))
 
 	for ci, ct := range chapters {
 
-		if err := ncps.synthesizeChapterTitle(ci, ct); err != nil {
+		if err := cps.CreateChapterTitle(ci, ct); err != nil {
 			return sa.EndWithError(err)
 		}
 
@@ -83,7 +75,7 @@ func Synthesize(inputFilename string, voice *gti.VoiceSelectionParams, key, outp
 		pa.TotalInt(len(paragraphs))
 
 		for pi, pt := range paragraphs {
-			if err = ncps.synthesizeChapterParagraph(ci, pi, string(pt)); err != nil {
+			if err = cps.CreateChapterParagraph(ci, pi, string(pt)); err != nil {
 				return pa.EndWithError(err)
 			}
 			pa.Increment()
@@ -91,7 +83,7 @@ func Synthesize(inputFilename string, voice *gti.VoiceSelectionParams, key, outp
 
 		pa.EndWithResult("done")
 
-		if err = ncps.createChapterFilesList(ci, len(paragraphs)); err != nil {
+		if err = cps.CreateChapterFilesList(ci, len(paragraphs)); err != nil {
 			return sa.EndWithError(err)
 		}
 
@@ -99,129 +91,6 @@ func Synthesize(inputFilename string, voice *gti.VoiceSelectionParams, key, outp
 	}
 
 	sa.EndWithResult("done")
-
-	return nil
-}
-
-func relChapterFilename(chapter int) string {
-	return relChapterParagraphFilename(chapter, -1)
-}
-
-func relChapterParagraphFilename(chapter, paragraph int) string {
-	return fmt.Sprintf("%"+filenamePaddedDigits+"d-%"+filenamePaddedDigits+"d.ogg", chapter+1, paragraph+1)
-}
-
-func relChapterFilesListFilename(chapter int) string {
-	return fmt.Sprintf("%"+filenamePaddedDigits+"d.txt", chapter+1)
-}
-
-type chapterParagraphSynthesizer struct {
-	outputDirectory string
-	synthesizer     *gti.Synthesizer
-	overwrite       bool
-}
-
-func newChapterParagraphSynthesizer(
-	hc *http.Client,
-	voice *gti.VoiceSelectionParams,
-	key string,
-	outputDirectory string,
-	overwrite bool) *chapterParagraphSynthesizer {
-	return &chapterParagraphSynthesizer{
-		outputDirectory: outputDirectory,
-		synthesizer:     gti.NewSynthesizer(hc, voice, key),
-		overwrite:       overwrite,
-	}
-}
-
-func (s *chapterParagraphSynthesizer) synthesizeChapterTitle(chapter int, content string) error {
-
-	absChapterFilename := filepath.Join(
-		s.outputDirectory,
-		relChapterFilename(chapter))
-
-	if !s.overwrite {
-		if _, err := os.Stat(absChapterFilename); err == nil {
-			return nil
-		}
-	}
-
-	content = fmt.Sprintf(
-		"<speak><break time=\"%s\"/>%s<break time=\"%s\"/></speak>",
-		chapterTitleBreakTime,
-		content,
-		chapterTitleBreakTime)
-
-	return s.synthesizeContent(content, gti.SSML, absChapterFilename)
-}
-
-func (s *chapterParagraphSynthesizer) synthesizeChapterParagraph(chapter, paragraph int, content string) error {
-
-	absChapterParagraphFilename := filepath.Join(
-		s.outputDirectory,
-		relChapterParagraphFilename(chapter, paragraph))
-
-	if !s.overwrite {
-		if _, err := os.Stat(absChapterParagraphFilename); err == nil {
-			return nil
-		}
-	}
-
-	return s.synthesizeContent(content, gti.Text, absChapterParagraphFilename)
-}
-
-func (s *chapterParagraphSynthesizer) synthesizeContent(content string, contentType gti.SynthesisInputType, outputFilename string) error {
-
-	var postContent func(string) (*gti.TextSynthesizeResponse, error)
-
-	switch contentType {
-	case gti.Text:
-		postContent = s.synthesizer.PostText
-	case gti.SSML:
-		postContent = s.synthesizer.PostSSML
-	}
-
-	sr, err := postContent(content)
-	if err != nil {
-		return err
-	}
-
-	bts, err := sr.Bytes()
-	if err != nil {
-		return err
-	}
-
-	oggFile, err := os.Create(outputFilename)
-	if err != nil {
-		return err
-	}
-	defer oggFile.Close()
-
-	if _, err = io.Copy(oggFile, bytes.NewReader(bts)); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *chapterParagraphSynthesizer) createChapterFilesList(chapter, paragraphsCount int) error {
-
-	cfn := filepath.Join(
-		s.outputDirectory,
-		relChapterFilesListFilename(chapter))
-
-	chaptersFile, err := os.Create(cfn)
-	if err != nil {
-		return err
-	}
-	defer chaptersFile.Close()
-
-	for pp := -1; pp < paragraphsCount; pp++ {
-		fn := relChapterParagraphFilename(chapter, pp)
-		if _, err = io.WriteString(chaptersFile, fmt.Sprintf("file '%s'\n", fn)); err != nil {
-			return err
-		}
-	}
 
 	return nil
 }
