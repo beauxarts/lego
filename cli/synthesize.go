@@ -16,6 +16,8 @@ func SynthesizeHandler(u *url.URL) error {
 	q := u.Query()
 
 	filename := q.Get("input-filename")
+	title, author := q.Get("title"), q.Get("author")
+
 	key := q.Get("key")
 	if key == "" {
 		//attempt to get the key from a file, if specified
@@ -37,10 +39,14 @@ func SynthesizeHandler(u *url.URL) error {
 	outputDirectory := q.Get("output-directory")
 	overwrite := q.Has("overwrite")
 
-	return Synthesize(filename, voice, key, outputDirectory, overwrite)
+	return Synthesize(filename, title, author, voice, key, outputDirectory, overwrite)
 }
 
-func Synthesize(inputFilename string, voice *gti.VoiceSelectionParams, key, outputDirectory string, overwrite bool) error {
+func Synthesize(
+	inputFilename, title, author string,
+	voice *gti.VoiceSelectionParams,
+	key, outputDirectory string,
+	overwrite bool) error {
 	sa := nod.NewProgress("synthesizing audiobook from text...")
 	defer sa.End()
 
@@ -51,10 +57,10 @@ func Synthesize(inputFilename string, voice *gti.VoiceSelectionParams, key, outp
 	//- create a list of chapter paragraph audio files 00000000c.txt
 
 	file, err := os.Open(inputFilename)
+	defer file.Close()
 	if err != nil {
 		return sa.EndWithError(err)
 	}
-	defer file.Close()
 
 	td := divido.NewTextDocument(file)
 	chapters := td.ChapterTitles()
@@ -91,6 +97,10 @@ func Synthesize(inputFilename string, voice *gti.VoiceSelectionParams, key, outp
 		}
 
 		sa.Increment()
+	}
+
+	if err := cps.CreateMetadata(td.ExportMetadata(title, author)); err != nil {
+		return sa.EndWithError(err)
 	}
 
 	sa.EndWithResult("done")

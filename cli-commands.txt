@@ -16,6 +16,8 @@ info
 
 synthesize
     input-filename^*
+    title
+    author
     key$
     key-filename$
     voice-locale

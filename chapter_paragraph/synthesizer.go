@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	filenamePaddedDigits  = "09"
-	chapterTitleBreakTime = "1s"
+	filenamePaddedDigits   = "09"
+	chapterTitleBreakTime  = "1s"
+	FFMPEGMetadataFilename = "_ffmpegmetadata.txt"
 )
 
 func RelChapterFilename(chapter int) string {
@@ -20,7 +21,10 @@ func RelChapterFilename(chapter int) string {
 }
 
 func RelChapterParagraphFilename(chapter, paragraph int) string {
-	return fmt.Sprintf("%"+filenamePaddedDigits+"d-%"+filenamePaddedDigits+"d"+gti.DefaultEncodingExt, chapter+1, paragraph+1)
+	return fmt.Sprintf(
+		"%"+filenamePaddedDigits+"d-%"+filenamePaddedDigits+"d"+gti.DefaultEncodingExt,
+		chapter+1,
+		paragraph+1)
 }
 
 func RelChapterFilesListFilename(chapter int) string {
@@ -111,10 +115,10 @@ func (s *Synthesizer) createContent(content string, contentType gti.SynthesisInp
 	}
 
 	oggFile, err := os.Create(outputFilename)
+	defer oggFile.Close()
 	if err != nil {
 		return err
 	}
-	defer oggFile.Close()
 
 	if _, err = io.Copy(oggFile, bytes.NewReader(bts)); err != nil {
 		return err
@@ -130,16 +134,34 @@ func (s *Synthesizer) CreateChapterFilesList(chapter, paragraphsCount int) error
 		RelChapterFilesListFilename(chapter))
 
 	chaptersFile, err := os.Create(cfn)
+	defer chaptersFile.Close()
 	if err != nil {
 		return err
 	}
-	defer chaptersFile.Close()
 
 	for pp := -1; pp < paragraphsCount; pp++ {
 		fn := RelChapterParagraphFilename(chapter, pp)
 		if _, err = io.WriteString(chaptersFile, fmt.Sprintf("file '%s'\n", fn)); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (s *Synthesizer) CreateMetadata(metadata string) error {
+	mfn := filepath.Join(
+		s.outputDirectory,
+		FFMPEGMetadataFilename)
+
+	metadataFile, err := os.Create(mfn)
+	defer metadataFile.Close()
+	if err != nil {
+		return err
+	}
+
+	if _, err := io.WriteString(metadataFile, metadata); err != nil {
+		return err
 	}
 
 	return nil
