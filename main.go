@@ -33,9 +33,12 @@ func main() {
 	}
 
 	clo.HandleFuncs(map[string]clo.Handler{
-		"bind":       cli.BindHandler,
-		"info":       cli.InfoHandler,
-		"synthesize": cli.SynthesizeHandler,
+		"bind-book":        cli.BindBookHandler,
+		"bind-chapters":    cli.BindChaptersHandler,
+		"chapter-metadata": cli.ChapterMetadataHandler,
+		"cleanup":          cli.CleanupHandler,
+		"info":             cli.InfoHandler,
+		"synthesize":       cli.SynthesizeHandler,
 	})
 
 	if err := defs.AssertCommandsHaveHandlers(); err != nil {

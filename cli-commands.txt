@@ -6,9 +6,24 @@
 # {} - placeholder values
 # {^} - placeholder values, first value is default
 
-bind
-    input-directory
+bind-chapters
+    input-directory^
     ffmpeg-cmd$
+    overwrite
+
+bind-book
+    input-directory^
+    ffmpeg-cmd$
+    overwrite
+
+chapter-metadata
+    input-directory^
+    title
+    author
+    overwrite
+
+cleanup
+    input-directory^
 
 info
     filename^*
@@ -18,7 +33,7 @@ synthesize
     input-filename^*
     title
     author
-    key$
+    key-value$
     key-filename$
     voice-locale
     voice-name

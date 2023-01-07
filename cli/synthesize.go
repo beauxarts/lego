@@ -18,7 +18,7 @@ func SynthesizeHandler(u *url.URL) error {
 	filename := q.Get("input-filename")
 	title, author := q.Get("title"), q.Get("author")
 
-	key := q.Get("key")
+	key := q.Get("key-value")
 	if key == "" {
 		//attempt to get the key from a file, if specified
 		keyFilename := q.Get("key-filename")
@@ -47,7 +47,7 @@ func Synthesize(
 	voice *gti.VoiceSelectionParams,
 	key, outputDirectory string,
 	overwrite bool) error {
-	sa := nod.NewProgress("synthesizing audiobook from text...")
+	sa := nod.NewProgress("synthesizing chapter paragraphs from text...")
 	defer sa.End()
 
 	//in order to convert text file to audiobook the following steps are required:
@@ -99,7 +99,7 @@ func Synthesize(
 		sa.Increment()
 	}
 
-	if err := cps.CreateMetadata(td.ExportMetadata(title, author)); err != nil {
+	if err := cps.CreateChapterTitles(td.ChapterTitles()); err != nil {
 		return sa.EndWithError(err)
 	}
 

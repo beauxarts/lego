@@ -8,27 +8,40 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const (
-	filenamePaddedDigits   = "09"
-	chapterTitleBreakTime  = "1s"
-	FFMPEGMetadataFilename = "_ffmpegmetadata.txt"
+	filenamePaddedDigits  = "09"
+	chapterTitleBreakTime = "1s"
+	chapterTitlesFilename = "_chapter_titles.txt"
 )
 
+func RelChapterTitlesFilename() string {
+	return chapterTitlesFilename
+}
+
 func RelChapterFilename(chapter int) string {
-	return RelChapterParagraphFilename(chapter, -1)
+	return fmt.Sprintf("%"+filenamePaddedDigits+"d"+gti.DefaultEncodingExt, chapter)
+}
+
+func RelChapterFfmpegOutputFilename(chapter int) string {
+	return fmt.Sprintf("%"+filenamePaddedDigits+"d_ffmpeg.txt", chapter)
+}
+
+func RelChapterTitleFilename(chapter int) string {
+	return RelChapterParagraphFilename(chapter, 0)
 }
 
 func RelChapterParagraphFilename(chapter, paragraph int) string {
 	return fmt.Sprintf(
 		"%"+filenamePaddedDigits+"d-%"+filenamePaddedDigits+"d"+gti.DefaultEncodingExt,
-		chapter+1,
-		paragraph+1)
+		chapter,
+		paragraph)
 }
 
-func RelChapterFilesListFilename(chapter int) string {
-	return fmt.Sprintf("%"+filenamePaddedDigits+"d.txt", chapter+1)
+func RelChapterFilesFilename(chapter int) string {
+	return fmt.Sprintf("%"+filenamePaddedDigits+"d_files.txt", chapter)
 }
 
 type Synthesizer struct {
@@ -61,7 +74,7 @@ func (s *Synthesizer) CreateChapterTitle(chapter int, content string) error {
 
 	absChapterFilename := filepath.Join(
 		s.outputDirectory,
-		RelChapterFilename(chapter))
+		RelChapterTitleFilename(chapter+1))
 
 	if !s.overwrite {
 		if _, err := os.Stat(absChapterFilename); err == nil {
@@ -82,7 +95,7 @@ func (s *Synthesizer) CreateChapterParagraph(chapter, paragraph int, content str
 
 	absChapterParagraphFilename := filepath.Join(
 		s.outputDirectory,
-		RelChapterParagraphFilename(chapter, paragraph))
+		RelChapterParagraphFilename(chapter+1, paragraph+1))
 
 	if !s.overwrite {
 		if _, err := os.Stat(absChapterParagraphFilename); err == nil {
@@ -93,7 +106,10 @@ func (s *Synthesizer) CreateChapterParagraph(chapter, paragraph int, content str
 	return s.createContent(content, gti.Text, absChapterParagraphFilename)
 }
 
-func (s *Synthesizer) createContent(content string, contentType gti.SynthesisInputType, outputFilename string) error {
+func (s *Synthesizer) createContent(
+	content string,
+	contentType gti.SynthesisInputType,
+	outputFilename string) error {
 
 	var postContent func(string) (*gti.TextSynthesizeResponse, error)
 
@@ -131,7 +147,7 @@ func (s *Synthesizer) CreateChapterFilesList(chapter, paragraphsCount int) error
 
 	cfn := filepath.Join(
 		s.outputDirectory,
-		RelChapterFilesListFilename(chapter))
+		RelChapterFilesFilename(chapter+1))
 
 	chaptersFile, err := os.Create(cfn)
 	defer chaptersFile.Close()
@@ -140,7 +156,7 @@ func (s *Synthesizer) CreateChapterFilesList(chapter, paragraphsCount int) error
 	}
 
 	for pp := -1; pp < paragraphsCount; pp++ {
-		fn := RelChapterParagraphFilename(chapter, pp)
+		fn := RelChapterParagraphFilename(chapter+1, pp+1)
 		if _, err = io.WriteString(chaptersFile, fmt.Sprintf("file '%s'\n", fn)); err != nil {
 			return err
 		}
@@ -149,18 +165,18 @@ func (s *Synthesizer) CreateChapterFilesList(chapter, paragraphsCount int) error
 	return nil
 }
 
-func (s *Synthesizer) CreateMetadata(metadata string) error {
-	mfn := filepath.Join(
+func (s *Synthesizer) CreateChapterTitles(chapterTitles []string) error {
+	ctfn := filepath.Join(
 		s.outputDirectory,
-		FFMPEGMetadataFilename)
+		chapterTitlesFilename)
 
-	metadataFile, err := os.Create(mfn)
-	defer metadataFile.Close()
+	chapterTitlesFile, err := os.Create(ctfn)
+	defer chapterTitlesFile.Close()
 	if err != nil {
 		return err
 	}
 
-	if _, err := io.WriteString(metadataFile, metadata); err != nil {
+	if _, err := io.WriteString(chapterTitlesFile, strings.Join(chapterTitles, "\n")); err != nil {
 		return err
 	}
 
