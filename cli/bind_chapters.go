@@ -3,8 +3,10 @@ package cli
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"github.com/beauxarts/lego/chapter_paragraph"
 	"github.com/boggydigital/nod"
+	"io"
 	"net/url"
 	"os"
 	"os/exec"
@@ -34,13 +36,6 @@ func BindChaptersHandler(u *url.URL) error {
 
 func BindChapters(inputDirectory, ffmpegCmd string, overwrite bool) error {
 
-	//- using 00000000c.txt, combine all paragraph files into a single chapter file 00000000c.ogg
-	//- (not implemented) process conversion output to extract chapter length
-	//- (not implemented) delete individual paragraph audio files and list of chapter paragraph audio files
-	//- (not implemented) generate FFMETADATA file required for audiobook chapter markers using chapter lengths
-	//- (not implemented) bind a single file audiobook with chapter metadata
-	//- (not implemented) cleanup everything created in the session leaving just the audiobook
-
 	bca := nod.NewProgress("binding paragraphs into chapters...")
 	defer bca.End()
 
@@ -60,6 +55,15 @@ func BindChapters(inputDirectory, ffmpegCmd string, overwrite bool) error {
 
 	bca.TotalInt(chapters)
 
+	bfn := filepath.Join(
+		inputDirectory,
+		chapter_paragraph.RelBookFilesFilename())
+	bf, err := os.Create(bfn)
+	defer bf.Close()
+	if err != nil {
+		return bca.EndWithError(err)
+	}
+
 	for c := 1; c <= chapters; c++ {
 		cfn := filepath.Join(
 			inputDirectory,
@@ -69,10 +73,15 @@ func BindChapters(inputDirectory, ffmpegCmd string, overwrite bool) error {
 			inputDirectory,
 			chapter_paragraph.RelChapterFfmpegOutputFilename(c))
 
-		if !overwrite {
-			if _, err = os.Stat(cfn); err == nil {
+		if _, err = os.Stat(cfn); err == nil {
+			if !overwrite {
 				continue
+			} else {
+				if err := os.Remove(cfn); err != nil {
+					return bca.EndWithError(err)
+				}
 			}
+
 		}
 
 		cflfn := filepath.Join(
@@ -90,6 +99,11 @@ func BindChapters(inputDirectory, ffmpegCmd string, overwrite bool) error {
 		cmd.Stdout = cbof
 		cmd.Stderr = cbof
 		if err = cmd.Run(); err != nil {
+			return bca.EndWithError(err)
+		}
+
+		fileLine := fmt.Sprintf("file '%s'\n", chapter_paragraph.RelChapterFilename(c))
+		if _, err = io.WriteString(bf, fileLine); err != nil {
 			return bca.EndWithError(err)
 		}
 

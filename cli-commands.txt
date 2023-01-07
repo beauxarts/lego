@@ -18,6 +18,7 @@ bind-book
 
 chapter-metadata
     input-directory^
+    input-metadata
     title
     author
     overwrite

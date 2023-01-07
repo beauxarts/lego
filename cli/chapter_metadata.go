@@ -5,6 +5,7 @@ import (
 	"github.com/beauxarts/lego/chapter_paragraph"
 	"github.com/beauxarts/lego/ffmpeg_integration"
 	"github.com/boggydigital/nod"
+	"github.com/boggydigital/wits"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -14,14 +15,15 @@ func ChapterMetadataHandler(u *url.URL) error {
 	q := u.Query()
 
 	inputDirectory := q.Get("input-directory")
+	inputMetadata := q.Get("input-metadata")
 	title, author := q.Get("title"), q.Get("author")
 
 	overwrite := q.Has("overwrite")
 
-	return ChapterMetadata(inputDirectory, title, author, overwrite)
+	return ChapterMetadata(inputDirectory, inputMetadata, title, author, overwrite)
 }
 
-func ChapterMetadata(inputDirectory, title, author string, overwrite bool) error {
+func ChapterMetadata(inputDirectory, inputMetadata, title, author string, overwrite bool) error {
 	cma := nod.Begin("generating ffmpeg chapter metadata...")
 	defer cma.End()
 
@@ -65,7 +67,34 @@ func ChapterMetadata(inputDirectory, title, author string, overwrite bool) error
 		chaptersDuration[ct] = dur
 	}
 
-	if err := ffmpeg_integration.CreateMetadata(mfn, title, author, chapters, chaptersDuration); err != nil {
+	metadata := make(map[string]string)
+
+	if _, err := os.Stat(inputMetadata); err == nil {
+		imf, err := os.Open(inputMetadata)
+		if err != nil {
+			return cma.EndWithError(err)
+		}
+		skv, err := wits.ReadSectionKeyValue(imf)
+		if err != nil {
+			return cma.EndWithError(err)
+		}
+
+		if len(skv) > 0 {
+			for _, kv := range skv {
+				metadata = kv
+				break
+			}
+		}
+	}
+
+	if title != "" {
+		metadata["title"] = title
+	}
+	if author != "" {
+		metadata["author"] = author
+	}
+
+	if err := ffmpeg_integration.CreateMetadata(mfn, metadata, chapters, chaptersDuration); err != nil {
 		return cma.EndWithError(err)
 	}
 

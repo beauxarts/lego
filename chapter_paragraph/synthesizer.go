@@ -12,37 +12,9 @@ import (
 )
 
 const (
-	filenamePaddedDigits  = "09"
 	chapterTitleBreakTime = "1s"
 	chapterTitlesFilename = "_chapter_titles.txt"
 )
-
-func RelChapterTitlesFilename() string {
-	return chapterTitlesFilename
-}
-
-func RelChapterFilename(chapter int) string {
-	return fmt.Sprintf("%"+filenamePaddedDigits+"d"+gti.DefaultEncodingExt, chapter)
-}
-
-func RelChapterFfmpegOutputFilename(chapter int) string {
-	return fmt.Sprintf("%"+filenamePaddedDigits+"d_ffmpeg.txt", chapter)
-}
-
-func RelChapterTitleFilename(chapter int) string {
-	return RelChapterParagraphFilename(chapter, 0)
-}
-
-func RelChapterParagraphFilename(chapter, paragraph int) string {
-	return fmt.Sprintf(
-		"%"+filenamePaddedDigits+"d-%"+filenamePaddedDigits+"d"+gti.DefaultEncodingExt,
-		chapter,
-		paragraph)
-}
-
-func RelChapterFilesFilename(chapter int) string {
-	return fmt.Sprintf("%"+filenamePaddedDigits+"d_files.txt", chapter)
-}
 
 type Synthesizer struct {
 	outputDirectory string
