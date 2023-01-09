@@ -1,9 +1,10 @@
 package ffmpeg_integration
 
 import (
-	"github.com/beauxarts/lego/chapter_paragraph"
+	"golang.org/x/exp/maps"
 	"io"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -29,8 +30,8 @@ const (
 func CreateMetadata(
 	filename string,
 	metadata map[string]string,
-	chapters []string,
-	chaptersDuration map[string]int64) error {
+	chapterFilenameTitle map[string]string,
+	chaptersFileDuration map[string]int64) error {
 
 	sb := strings.Builder{}
 
@@ -62,14 +63,17 @@ func CreateMetadata(
 
 	var currentOffset int64 = 0
 
-	for ci, ct := range chapters {
+	cfns := maps.Keys(chapterFilenameTitle)
+	sort.Strings(cfns)
+
+	for _, cfn := range cfns {
 		sb.WriteString(MetadataChapterSection + "\n")
 		sb.WriteString(MetadataTimebaseDefaultValue + "\n")
 		sb.WriteString(MetadataStartPrefix + strconv.FormatInt(currentOffset, 10) + "\n")
-		currentOffset += chaptersDuration[ct]
+		currentOffset += chaptersFileDuration[cfn]
 		sb.WriteString(MetadataEndPrefix + strconv.FormatInt(currentOffset, 10) + "\n")
-		sb.WriteString(MetadataTitlePrefix + ct + "\n")
-		sb.WriteString(MetadataFilePrefix + chapter_paragraph.RelChapterFilename(ci+1) + "\n")
+		sb.WriteString(MetadataTitlePrefix + chapterFilenameTitle[cfn] + "\n")
+		sb.WriteString(MetadataFilePrefix + cfn + "\n")
 		sb.WriteString("\n")
 	}
 

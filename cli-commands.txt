@@ -26,18 +26,26 @@ chapter-metadata
 cleanup
     input-directory^
 
+cover
+    input-filename^*
+    cover-filename*
+    mp4art-cmd$
+
 info
     filename^*
     cost-per-million-characters
 
 synthesize
     input-filename^*
-    title
-    author
+    provider*=gcp,say^
     key-value$
     key-filename$
-    voice-locale
-    voice-name
-    voice-gender
+    voice-params&
     output-directory
     overwrite
+
+voices
+    provider*=gcp,say^
+    key-value$
+    key-filename$
+    locale^

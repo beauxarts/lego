@@ -2,7 +2,8 @@ package chapter_paragraph
 
 import (
 	"fmt"
-	gti "github.com/beauxarts/google_tts_integration"
+	"path/filepath"
+	"strings"
 )
 
 const (
@@ -13,31 +14,32 @@ const (
 	bookPrefix           = "_book"
 )
 
-func RelChapterTitlesFilename() string {
-	return chapterTitlesFilename
+func RelChaptersFilename() string {
+	return chaptersFilename
 }
 
-func RelChapterFilename(chapter int) string {
-	return fmt.Sprintf("%"+filenamePaddedDigits+"d"+gti.DefaultEncodingExt, chapter)
+func RelChapterFilename(chapter int, ext string) string {
+	return fmt.Sprintf("%"+filenamePaddedDigits+"d"+ext, chapter)
 }
 
-func RelChapterFfmpegOutputFilename(chapter int) string {
-	return fmt.Sprintf("%"+filenamePaddedDigits+"d"+ffmpegSuffix+listExt, chapter)
+func RelChapterFfmpegOutputFilename(chapterFilename string) string {
+	return fmt.Sprintf(chapterFilename + ffmpegSuffix + listExt)
 }
 
-func RelChapterTitleFilename(chapter int) string {
-	return RelChapterParagraphFilename(chapter, 0)
+func RelChapterTitleFilename(chapter int, ext string) string {
+	return RelChapterParagraphFilename(chapter, 0, ext)
 }
 
-func RelChapterParagraphFilename(chapter, paragraph int) string {
+func RelChapterParagraphFilename(chapter, paragraph int, ext string) string {
 	return fmt.Sprintf(
-		"%"+filenamePaddedDigits+"d-%"+filenamePaddedDigits+"d"+gti.DefaultEncodingExt,
+		"%"+filenamePaddedDigits+"d-%"+filenamePaddedDigits+"d"+ext,
 		chapter,
 		paragraph)
 }
 
-func RelChapterFilesFilename(chapter int) string {
-	return fmt.Sprintf("%"+filenamePaddedDigits+"d"+filesSuffix+listExt, chapter)
+func RelChapterFilesFilename(chapter string) string {
+	chapter = strings.TrimSuffix(chapter, filepath.Ext(chapter))
+	return fmt.Sprintf(chapter + filesSuffix + listExt)
 }
 
 func RelBookFilesFilename() string {

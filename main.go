@@ -37,8 +37,10 @@ func main() {
 		"bind-chapters":    cli.BindChaptersHandler,
 		"chapter-metadata": cli.ChapterMetadataHandler,
 		"cleanup":          cli.CleanupHandler,
+		"cover":            cli.CoverHandler,
 		"info":             cli.InfoHandler,
 		"synthesize":       cli.SynthesizeHandler,
+		"voices":           cli.VoicesHandler,
 	})
 
 	if err := defs.AssertCommandsHaveHandlers(); err != nil {

@@ -1,9 +1,11 @@
 package chapter_paragraph
 
 import (
-	"bytes"
+	"errors"
 	"fmt"
-	gti "github.com/beauxarts/google_tts_integration"
+	"github.com/beauxarts/tts_integration"
+	"github.com/beauxarts/tts_integration/gcp"
+	"github.com/beauxarts/tts_integration/say"
 	"io"
 	"net/http"
 	"os"
@@ -13,32 +15,62 @@ import (
 
 const (
 	chapterTitleBreakTime = "1s"
-	chapterTitlesFilename = "_chapter_titles.txt"
+	chaptersFilename      = "_chapters.txt"
 )
 
 type Synthesizer struct {
 	outputDirectory string
-	synthesizer     *gti.Synthesizer
+	synthesizer     tts_integration.Synthesizer
 	overwrite       bool
+	ext             string
 }
 
-func NewSynthesizer(
+func NewSaySynthesizer(
+	voiceParams []string,
+	outputDirectory string,
+	overwrite bool) (*Synthesizer, error) {
+
+	if outputDirectory != "" {
+		if _, err := os.Stat(outputDirectory); os.IsNotExist(err) {
+			if err := os.MkdirAll(outputDirectory, 0755); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	voice := ""
+	if len(voiceParams) > 0 {
+		voice = voiceParams[0]
+	}
+
+	return &Synthesizer{
+		outputDirectory: outputDirectory,
+		synthesizer:     say.NewSynthesizer(voice, say.DefaultAudioFormat),
+		overwrite:       overwrite,
+		ext:             say.DefaultAudioExt,
+	}, nil
+}
+
+func NewGCPSynthesizer(
 	hc *http.Client,
-	voice *gti.VoiceSelectionParams,
+	voiceParams []string,
 	key string,
 	outputDirectory string,
 	overwrite bool) (*Synthesizer, error) {
 
-	if _, err := os.Stat(outputDirectory); os.IsNotExist(err) {
-		if err := os.MkdirAll(outputDirectory, 0755); err != nil {
-			return nil, err
+	if outputDirectory != "" {
+		if _, err := os.Stat(outputDirectory); os.IsNotExist(err) {
+			if err := os.MkdirAll(outputDirectory, 0755); err != nil {
+				return nil, err
+			}
 		}
 	}
 
 	return &Synthesizer{
 		outputDirectory: outputDirectory,
-		synthesizer:     gti.NewSynthesizer(hc, voice, key),
+		synthesizer:     gcp.NewSynthesizer(hc, key, voiceParams...),
 		overwrite:       overwrite,
+		ext:             gcp.DefaultAudioEncodingExt,
 	}, nil
 }
 
@@ -46,7 +78,7 @@ func (s *Synthesizer) CreateChapterTitle(chapter int, content string) error {
 
 	absChapterFilename := filepath.Join(
 		s.outputDirectory,
-		RelChapterTitleFilename(chapter+1))
+		RelChapterTitleFilename(chapter+1, s.ext))
 
 	if !s.overwrite {
 		if _, err := os.Stat(absChapterFilename); err == nil {
@@ -54,20 +86,24 @@ func (s *Synthesizer) CreateChapterTitle(chapter int, content string) error {
 		}
 	}
 
-	content = fmt.Sprintf(
-		"<speak><break time=\"%s\"/>%s<break time=\"%s\"/></speak>",
-		chapterTitleBreakTime,
-		content,
-		chapterTitleBreakTime)
+	ct := tts_integration.Text
+	if s.synthesizer.IsSSMLSupported() {
+		content = fmt.Sprintf(
+			"<speak><break time=\"%s\"/>%s<break time=\"%s\"/></speak>",
+			chapterTitleBreakTime,
+			content,
+			chapterTitleBreakTime)
+		ct = tts_integration.SSML
+	}
 
-	return s.createContent(content, gti.SSML, absChapterFilename)
+	return s.createContent(content, ct, absChapterFilename)
 }
 
 func (s *Synthesizer) CreateChapterParagraph(chapter, paragraph int, content string) error {
 
 	absChapterParagraphFilename := filepath.Join(
 		s.outputDirectory,
-		RelChapterParagraphFilename(chapter+1, paragraph+1))
+		RelChapterParagraphFilename(chapter+1, paragraph+1, s.ext))
 
 	if !s.overwrite {
 		if _, err := os.Stat(absChapterParagraphFilename); err == nil {
@@ -75,51 +111,46 @@ func (s *Synthesizer) CreateChapterParagraph(chapter, paragraph int, content str
 		}
 	}
 
-	return s.createContent(content, gti.Text, absChapterParagraphFilename)
+	return s.createContent(content, tts_integration.Text, absChapterParagraphFilename)
 }
 
 func (s *Synthesizer) createContent(
 	content string,
-	contentType gti.SynthesisInputType,
+	contentType tts_integration.SynthesisInputType,
 	outputFilename string) error {
 
-	var postContent func(string) (*gti.TextSynthesizeResponse, error)
+	var writer *os.File
+	var err error
+	if s.synthesizer.IsWriterRequired() {
+		writer, err = os.Create(outputFilename)
+		defer writer.Close()
+		if err != nil {
+			return err
+		}
+	}
+
+	if contentType == tts_integration.SSML &&
+		!s.synthesizer.IsSSMLSupported() {
+		return errors.New("synthesizer doesn't support SSML")
+	}
 
 	switch contentType {
-	case gti.Text:
-		postContent = s.synthesizer.PostText
-	case gti.SSML:
-		postContent = s.synthesizer.PostSSML
+	case tts_integration.Text:
+		return s.synthesizer.WriteText(content, writer, outputFilename)
+	case tts_integration.SSML:
+		return s.synthesizer.WriteSSML(content, writer, outputFilename)
 	}
 
-	sr, err := postContent(content)
-	if err != nil {
-		return err
-	}
-
-	bts, err := sr.Bytes()
-	if err != nil {
-		return err
-	}
-
-	oggFile, err := os.Create(outputFilename)
-	defer oggFile.Close()
-	if err != nil {
-		return err
-	}
-
-	if _, err = io.Copy(oggFile, bytes.NewReader(bts)); err != nil {
-		return err
-	}
-
-	return nil
+	return errors.New("unsupported content type " + contentType.String())
 }
 
 func (s *Synthesizer) CreateChapterFilesList(chapter, paragraphsCount int) error {
 
+	chapterFilename := RelChapterFilename(chapter+1, s.ext)
+
 	cfn := filepath.Join(
 		s.outputDirectory,
-		RelChapterFilesFilename(chapter+1))
+		RelChapterFilesFilename(chapterFilename))
 
 	chaptersFile, err := os.Create(cfn)
 	defer chaptersFile.Close()
@@ -128,7 +159,7 @@ func (s *Synthesizer) CreateChapterFilesList(chapter, paragraphsCount int) error
 	}
 
 	for pp := -1; pp < paragraphsCount; pp++ {
-		fn := RelChapterParagraphFilename(chapter+1, pp+1)
+		fn := RelChapterParagraphFilename(chapter+1, pp+1, s.ext)
 		if _, err = io.WriteString(chaptersFile, fmt.Sprintf("file '%s'\n", fn)); err != nil {
 			return err
 		}
@@ -137,10 +168,10 @@ func (s *Synthesizer) CreateChapterFilesList(chapter, paragraphsCount int) error
 	return nil
 }
 
-func (s *Synthesizer) CreateChapterTitles(chapterTitles []string) error {
+func (s *Synthesizer) CreateChapters(chapterTitles []string) error {
 	ctfn := filepath.Join(
 		s.outputDirectory,
-		chapterTitlesFilename)
+		chaptersFilename)
 
 	chapterTitlesFile, err := os.Create(ctfn)
 	defer chapterTitlesFile.Close()
@@ -153,4 +184,8 @@ func (s *Synthesizer) CreateChapterTitles(chapterTitles []string) error {
 	}
 
 	return nil
+}
+
+func (s *Synthesizer) Voices(locale string) ([]string, error) {
+	return s.synthesizer.VoicesStrings(locale)
 }
