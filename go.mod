@@ -3,7 +3,7 @@ module github.com/beauxarts/lego
 go 1.19
 
 require (
-	github.com/beauxarts/divido v0.1.5
+	github.com/beauxarts/divido v0.1.6
 	github.com/boggydigital/clo v0.3.1
 	github.com/boggydigital/nod v0.1.20
 )

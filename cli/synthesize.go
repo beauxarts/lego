@@ -61,7 +61,20 @@ func Synthesize(
 		return sa.EndWithError(err)
 	}
 
-	td := divido.NewTextDocument(file)
+	var td divido.TextDocument
+
+	notesFilename := divido.DefaultNotesFilename(textFilename)
+	if _, err := os.Stat(notesFilename); err == nil {
+		notes, err := os.Open(notesFilename)
+		defer notes.Close()
+		if err != nil {
+			return sa.EndWithError(err)
+		}
+		td = divido.NewTextDocumentWithNotes(file, notes)
+	} else {
+		td = divido.NewTextDocument(file)
+	}
+
 	chapters := td.ChapterTitles()
 
 	var szr *chapter_paragraph.Synthesizer
