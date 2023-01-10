@@ -23,6 +23,7 @@ func RelChapterFilename(chapter int, ext string) string {
 }
 
 func RelChapterFfmpegOutputFilename(chapterFilename string) string {
+	chapterFilename = strings.TrimSuffix(chapterFilename, filepath.Ext(chapterFilename))
 	return fmt.Sprintf(chapterFilename + ffmpegSuffix + listExt)
 }
 
@@ -37,9 +38,9 @@ func RelChapterParagraphFilename(chapter, paragraph int, ext string) string {
 		paragraph)
 }
 
-func RelChapterFilesFilename(chapter string) string {
-	chapter = strings.TrimSuffix(chapter, filepath.Ext(chapter))
-	return fmt.Sprintf(chapter + filesSuffix + listExt)
+func RelChapterFilesFilename(chapterFilename string) string {
+	chapterFilename = strings.TrimSuffix(chapterFilename, filepath.Ext(chapterFilename))
+	return fmt.Sprintf(chapterFilename + filesSuffix + listExt)
 }
 
 func RelBookFilesFilename() string {

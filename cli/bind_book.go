@@ -17,7 +17,7 @@ import (
 func BindBookHandler(u *url.URL) error {
 	q := u.Query()
 
-	inputDirectory := q.Get("input-directory")
+	directory := q.Get("directory")
 
 	ffmpegCmd := q.Get("ffmpeg-cmd")
 	if ffmpegCmd == "" {
@@ -32,15 +32,15 @@ func BindBookHandler(u *url.URL) error {
 
 	overwrite := q.Has("overwrite")
 
-	return BindBook(inputDirectory, ffmpegCmd, overwrite)
+	return BindBook(directory, ffmpegCmd, overwrite)
 }
 
-func BindBook(inputDirectory, ffmpegCmd string, overwrite bool) error {
+func BindBook(directory, ffmpegCmd string, overwrite bool) error {
 
 	bba := nod.Begin("binding chapters into a book...")
 	defer bba.End()
 
-	mfn := filepath.Join(inputDirectory, ffmpeg_integration.MetadataFilename)
+	mfn := filepath.Join(directory, ffmpeg_integration.MetadataFilename)
 	if _, err := os.Stat(mfn); os.IsNotExist(err) {
 		return bba.EndWithError(errors.New("required metadata is not found in the provided directory"))
 	}
@@ -74,7 +74,7 @@ func BindBook(inputDirectory, ffmpegCmd string, overwrite bool) error {
 		author = "Anonymous"
 	}
 
-	bfn := filepath.Join(inputDirectory, fmt.Sprintf("%s - %s.m4b", author, title))
+	bfn := filepath.Join(directory, fmt.Sprintf("%s - %s.m4b", author, title))
 
 	if _, err := os.Stat(bfn); err == nil {
 		if !overwrite {
@@ -87,7 +87,7 @@ func BindBook(inputDirectory, ffmpegCmd string, overwrite bool) error {
 		}
 	}
 
-	bflfn := filepath.Join(inputDirectory, chapter_paragraph.RelBookFilesFilename())
+	bflfn := filepath.Join(directory, chapter_paragraph.RelBookFilesFilename())
 
 	args := []string{"-f", "concat", "-i", bflfn, "-i", mfn, "-map_metadata", "1", bfn}
 

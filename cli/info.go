@@ -11,25 +11,37 @@ import (
 )
 
 const (
-	defaultCostPerMillionChars = 16.0
+	defaultSayCostPerMillionChars = 0.0
+	defaultGCPCostPerMillionChars = 16.0
 )
 
 func InfoHandler(u *url.URL) error {
-	filename := u.Query().Get("filename")
-	cpmc := defaultCostPerMillionChars
-	cpmcs := u.Query().Get("cost-per-million-characters")
+	q := u.Query()
+
+	filename := q.Get("filename")
+	provider := q.Get("provider")
+
+	cpmc := defaultSayCostPerMillionChars
+	switch provider {
+	case "gcp":
+		cpmc = defaultGCPCostPerMillionChars
+	case "say":
+		//do nothing
+	}
+
+	cpmcs := q.Get("cost-per-million-characters")
 	if cpmci, err := strconv.ParseFloat(cpmcs, 64); err == nil {
 		cpmc = cpmci
 	}
 
-	return Info(filename, cpmc)
+	return Info(filename, provider, cpmc)
 }
 
-func Info(filename string, costPerMillionChars float64) error {
+func Info(filename, provider string, costPerMillionChars float64) error {
 	ia := nod.Begin("document info:")
 	defer ia.End()
 
-	cea := nod.Begin(" estimating synthesis cost...")
+	cea := nod.Begin(" estimating synthesis cost (%s)...", provider)
 	defer cea.End()
 
 	if stat, err := os.Stat(filename); err == nil {

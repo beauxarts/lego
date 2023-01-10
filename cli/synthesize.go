@@ -14,7 +14,7 @@ func SynthesizeHandler(u *url.URL) error {
 
 	q := u.Query()
 
-	filename := q.Get("input-filename")
+	textFilename := q.Get("text-filename")
 
 	provider := q.Get("provider")
 
@@ -32,11 +32,11 @@ func SynthesizeHandler(u *url.URL) error {
 	outputDirectory := q.Get("output-directory")
 	overwrite := q.Has("overwrite")
 
-	return Synthesize(filename, provider, voiceParams, key, outputDirectory, overwrite)
+	return Synthesize(textFilename, provider, voiceParams, key, outputDirectory, overwrite)
 }
 
 func Synthesize(
-	inputFilename string,
+	textFilename string,
 	provider string,
 	voiceParams []string,
 	key, outputDirectory string,
@@ -50,7 +50,7 @@ func Synthesize(
 	//- synthesize chapter by chapter, paragraph by paragraph to create files named 00000000c-00000000p.ogg
 	//- create a list of chapter paragraph audio files 00000000c.txt
 
-	file, err := os.Open(inputFilename)
+	file, err := os.Open(textFilename)
 	defer file.Close()
 	if err != nil {
 		return sa.EndWithError(err)

@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 const (
@@ -179,8 +178,10 @@ func (s *Synthesizer) CreateChapters(chapterTitles []string) error {
 		return err
 	}
 
-	if _, err := io.WriteString(chapterTitlesFile, strings.Join(chapterTitles, "\n")); err != nil {
-		return err
+	for ci, ct := range chapterTitles {
+		if _, err := io.WriteString(chapterTitlesFile, fmt.Sprintf("%s=%s\n", RelChapterFilename(ci+1, s.ext), ct)); err != nil {
+			return err
+		}
 	}
 
 	return nil

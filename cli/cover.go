@@ -11,7 +11,7 @@ import (
 func CoverHandler(u *url.URL) error {
 	q := u.Query()
 
-	inputFilename := q.Get("input-filename")
+	bookFilename := q.Get("book-filename")
 	coverFilename := q.Get("cover-filename")
 
 	mp4artCmd := q.Get("mp4art-cmd")
@@ -25,15 +25,15 @@ func CoverHandler(u *url.URL) error {
 		return errors.New("adding cover requires mp4art (part of mp4v2)")
 	}
 
-	return Cover(inputFilename, coverFilename, mp4artCmd)
+	return Cover(bookFilename, coverFilename, mp4artCmd)
 }
 
-func Cover(inputFilename, coverFilename, mp4artCmd string) error {
+func Cover(bookFilename, coverFilename, mp4artCmd string) error {
 
 	aca := nod.Begin("adding cover image...")
 	defer aca.End()
 
-	if _, err := os.Stat(inputFilename); os.IsNotExist(err) {
+	if _, err := os.Stat(bookFilename); os.IsNotExist(err) {
 		return aca.EndWithError(errors.New("input file not found"))
 	}
 
@@ -41,7 +41,7 @@ func Cover(inputFilename, coverFilename, mp4artCmd string) error {
 		return aca.EndWithError(errors.New("cover file not found"))
 	}
 
-	args := []string{"--add", coverFilename, inputFilename}
+	args := []string{"--add", coverFilename, bookFilename}
 	cmd := exec.Command(mp4artCmd, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

@@ -7,36 +7,37 @@
 # {^} - placeholder values, first value is default
 
 bind-chapters
-    input-directory^
+    directory^
     ffmpeg-cmd$
     overwrite
 
 bind-book
-    input-directory^
+    directory^
     ffmpeg-cmd$
     overwrite
 
 chapter-metadata
-    input-directory^
-    input-metadata
+    directory^
+    import-metadata
     title
     author
     overwrite
 
 cleanup
-    input-directory^
+    directory^
 
 cover
-    input-filename^*
+    book-filename^*
     cover-filename*
     mp4art-cmd$
 
 info
     filename^*
+    provider*=gcp,say^
     cost-per-million-characters
 
 synthesize
-    input-filename^*
+    text-filename^*
     provider*=gcp,say^
     key-value$
     key-filename$

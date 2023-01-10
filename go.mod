@@ -9,7 +9,7 @@ require (
 )
 
 require (
-	github.com/beauxarts/tts_integration v0.1.7 // indirect
+	github.com/beauxarts/tts_integration v0.1.8 // indirect
 	github.com/boggydigital/wits v0.2.3 // indirect
 	golang.org/x/exp v0.0.0-20220318154914-8dddf5d87bd8 // indirect
 )

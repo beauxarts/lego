@@ -22,6 +22,8 @@ func ExtractChapterDuration(filename string) (int64, error) {
 		return 0, err
 	}
 
+	var maxDur int64 = 0
+
 	scanner := bufio.NewScanner(outputFile)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -32,8 +34,8 @@ func ExtractChapterDuration(filename string) (int64, error) {
 					ts := strings.TrimPrefix(p, timePrefix)
 					if td, err := time.Parse("15:04:5.00", ts); err == nil {
 						dur := td.Sub(zeroDate)
-						if dur.Milliseconds() > 0 {
-							return dur.Milliseconds(), nil
+						if dm := dur.Milliseconds(); dm > 0 && maxDur < dm {
+							maxDur = dm
 						}
 					} else {
 						return 0, err
@@ -43,5 +45,5 @@ func ExtractChapterDuration(filename string) (int64, error) {
 		}
 	}
 
-	return 0, nil
+	return maxDur, nil
 }

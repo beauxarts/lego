@@ -17,7 +17,7 @@ import (
 func BindChaptersHandler(u *url.URL) error {
 	q := u.Query()
 
-	inputDirectory := q.Get("input-directory")
+	directory := q.Get("directory")
 
 	ffmpegCmd := q.Get("ffmpeg-cmd")
 	if ffmpegCmd == "" {
@@ -32,15 +32,15 @@ func BindChaptersHandler(u *url.URL) error {
 
 	overwrite := q.Has("overwrite")
 
-	return BindChapters(inputDirectory, ffmpegCmd, overwrite)
+	return BindChapters(directory, ffmpegCmd, overwrite)
 }
 
-func BindChapters(inputDirectory, ffmpegCmd string, overwrite bool) error {
+func BindChapters(directory, ffmpegCmd string, overwrite bool) error {
 
 	bca := nod.NewProgress("binding paragraphs into chapterFiles...")
 	defer bca.End()
 
-	mfn := filepath.Join(inputDirectory, chapter_paragraph.RelChaptersFilename())
+	mfn := filepath.Join(directory, chapter_paragraph.RelChaptersFilename())
 	mf, err := os.Open(mfn)
 	defer mf.Close()
 	if err != nil {
@@ -61,34 +61,33 @@ func BindChapters(inputDirectory, ffmpegCmd string, overwrite bool) error {
 	bca.TotalInt(len(chapterFiles))
 
 	bfn := filepath.Join(
-		inputDirectory,
+		directory,
 		chapter_paragraph.RelBookFilesFilename())
+
 	bf, err := os.Create(bfn)
 	defer bf.Close()
 	if err != nil {
 		return bca.EndWithError(err)
 	}
 
-	for _, cfn := range chapterFiles {
+	for _, relCfn := range chapterFiles {
 
-		cbofn := filepath.Join(
-			inputDirectory,
-			chapter_paragraph.RelChapterFfmpegOutputFilename(cfn))
+		absCfn := filepath.Join(directory, relCfn)
 
-		if _, err = os.Stat(cfn); err == nil {
+		cbofn := chapter_paragraph.RelChapterFfmpegOutputFilename(absCfn)
+
+		if _, err = os.Stat(absCfn); err == nil {
 			if !overwrite {
 				continue
 			} else {
-				if err := os.Remove(cfn); err != nil {
+				if err := os.Remove(absCfn); err != nil {
 					return bca.EndWithError(err)
 				}
 			}
 
 		}
 
-		cflfn := filepath.Join(
-			inputDirectory,
-			chapter_paragraph.RelChapterFilesFilename(cfn))
+		cflfn := chapter_paragraph.RelChapterFilesFilename(absCfn)
 
 		cbof, err := os.Create(cbofn)
 		defer cbof.Close()
@@ -96,7 +95,7 @@ func BindChapters(inputDirectory, ffmpegCmd string, overwrite bool) error {
 			return bca.EndWithError(err)
 		}
 
-		args := []string{"-f", "concat", "-i", cflfn, "-c", "copy", cfn}
+		args := []string{"-f", "concat", "-i", cflfn, "-c", "copy", absCfn}
 		cmd := exec.Command(ffmpegCmd, args...)
 		cmd.Stdout = cbof
 		cmd.Stderr = cbof
@@ -104,7 +103,7 @@ func BindChapters(inputDirectory, ffmpegCmd string, overwrite bool) error {
 			return bca.EndWithError(err)
 		}
 
-		fileLine := fmt.Sprintf("file '%s'\n", cfn)
+		fileLine := fmt.Sprintf("file '%s'\n", relCfn)
 		if _, err = io.WriteString(bf, fileLine); err != nil {
 			return bca.EndWithError(err)
 		}

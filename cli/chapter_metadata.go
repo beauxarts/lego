@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bufio"
+	"fmt"
 	"github.com/beauxarts/lego/chapter_paragraph"
 	"github.com/beauxarts/lego/ffmpeg_integration"
 	"github.com/boggydigital/nod"
@@ -15,21 +16,21 @@ import (
 func ChapterMetadataHandler(u *url.URL) error {
 	q := u.Query()
 
-	inputDirectory := q.Get("input-directory")
-	inputMetadata := q.Get("input-metadata")
+	directory := q.Get("directory")
+	importMetadata := q.Get("import-metadata")
 	title, author := q.Get("title"), q.Get("author")
 
 	overwrite := q.Has("overwrite")
 
-	return ChapterMetadata(inputDirectory, inputMetadata, title, author, overwrite)
+	return ChapterMetadata(directory, importMetadata, title, author, overwrite)
 }
 
-func ChapterMetadata(inputDirectory, inputMetadata, title, author string, overwrite bool) error {
+func ChapterMetadata(directory, importMetadata, title, author string, overwrite bool) error {
 	cma := nod.Begin("generating ffmpeg chapter metadata...")
 	defer cma.End()
 
 	mfn := filepath.Join(
-		inputDirectory,
+		directory,
 		ffmpeg_integration.MetadataFilename)
 
 	if !overwrite {
@@ -39,7 +40,7 @@ func ChapterMetadata(inputDirectory, inputMetadata, title, author string, overwr
 		}
 	}
 
-	ctfn := filepath.Join(inputDirectory, chapter_paragraph.RelChaptersFilename())
+	ctfn := filepath.Join(directory, chapter_paragraph.RelChaptersFilename())
 	ctf, err := os.Open(ctfn)
 	defer ctf.Close()
 	if err != nil {
@@ -62,7 +63,7 @@ func ChapterMetadata(inputDirectory, inputMetadata, title, author string, overwr
 	for cfn := range chaptersFileTitle {
 
 		fofn := filepath.Join(
-			inputDirectory,
+			directory,
 			chapter_paragraph.RelChapterFfmpegOutputFilename(cfn))
 
 		dur, err := ffmpeg_integration.ExtractChapterDuration(fofn)
@@ -75,8 +76,8 @@ func ChapterMetadata(inputDirectory, inputMetadata, title, author string, overwr
 
 	metadata := make(map[string]string)
 
-	if _, err := os.Stat(inputMetadata); err == nil {
-		imf, err := os.Open(inputMetadata)
+	if _, err := os.Stat(importMetadata); err == nil {
+		imf, err := os.Open(importMetadata)
 		if err != nil {
 			return cma.EndWithError(err)
 		}
@@ -99,6 +100,8 @@ func ChapterMetadata(inputDirectory, inputMetadata, title, author string, overwr
 	if author != "" {
 		metadata["author"] = author
 	}
+
+	fmt.Println(chaptersFileDuration)
 
 	if err := ffmpeg_integration.CreateMetadata(mfn, metadata, chaptersFileTitle, chaptersFileDuration); err != nil {
 		return cma.EndWithError(err)
