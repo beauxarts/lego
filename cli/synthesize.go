@@ -4,11 +4,16 @@ import (
 	"github.com/beauxarts/divido"
 	"github.com/beauxarts/lego/chapter_paragraph"
 	"github.com/boggydigital/nod"
+	"golang.org/x/exp/slices"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 )
+
+var breakAliases = []string{
+	"* * *",
+}
 
 func SynthesizeHandler(u *url.URL) error {
 
@@ -86,7 +91,16 @@ func Synthesize(
 		pa.TotalInt(len(paragraphs))
 
 		for pi, pt := range paragraphs {
-			if err = szr.CreateChapterParagraph(ci, pi, string(pt)); err != nil {
+
+			pts := strings.TrimSpace(string(pt))
+			if slices.Contains(breakAliases, pts) {
+				if err = szr.CreatePause(ci, pi); err != nil {
+					return pa.EndWithError(err)
+				}
+				continue
+			}
+
+			if err = szr.CreateChapterParagraph(ci, pi, pts); err != nil {
 				return pa.EndWithError(err)
 			}
 			pa.Increment()

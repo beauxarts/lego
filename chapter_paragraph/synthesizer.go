@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 const (
@@ -111,6 +112,23 @@ func (s *Synthesizer) CreateChapterParagraph(chapter, paragraph int, content str
 	}
 
 	return s.createContent(content, tts_integration.Text, absChapterParagraphFilename)
+}
+
+func (s *Synthesizer) CreatePause(chapter, paragraph int) error {
+
+	absChapterParagraphFilename := filepath.Join(
+		s.outputDirectory,
+		RelChapterParagraphFilename(chapter+1, paragraph+1, s.ext))
+
+	if !s.overwrite {
+		if _, err := os.Stat(absChapterParagraphFilename); err == nil {
+			return nil
+		}
+	}
+
+	content, contentType := s.synthesizer.Pause(time.Second * 2)
+
+	return s.createContent(content, contentType, absChapterParagraphFilename)
 }
 
 func (s *Synthesizer) createContent(

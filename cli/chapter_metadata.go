@@ -2,7 +2,6 @@ package cli
 
 import (
 	"bufio"
-	"fmt"
 	"github.com/beauxarts/lego/chapter_paragraph"
 	"github.com/beauxarts/lego/ffmpeg_integration"
 	"github.com/boggydigital/nod"
@@ -100,8 +99,6 @@ func ChapterMetadata(directory, importMetadata, title, author string, overwrite 
 	if author != "" {
 		metadata["author"] = author
 	}
-
-	fmt.Println(chaptersFileDuration)
 
 	if err := ffmpeg_integration.CreateMetadata(mfn, metadata, chaptersFileTitle, chaptersFileDuration); err != nil {
 		return cma.EndWithError(err)
