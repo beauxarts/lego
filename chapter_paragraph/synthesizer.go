@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	chapterTitleBreakTime = "1s"
-	chaptersFilename      = "_chapters.txt"
+	defaultPauseDuration = time.Second
+	chaptersFilename     = "_chapters.txt"
 )
 
 type Synthesizer struct {
@@ -74,7 +74,7 @@ func NewGCPSynthesizer(
 	}, nil
 }
 
-func (s *Synthesizer) CreateChapterTitle(chapter int, content string) error {
+func (s *Synthesizer) CreateChapterTitle(chapter int, text string) error {
 
 	absChapterFilename := filepath.Join(
 		s.outputDirectory,
@@ -86,17 +86,9 @@ func (s *Synthesizer) CreateChapterTitle(chapter int, content string) error {
 		}
 	}
 
-	ct := tts_integration.Text
-	if s.synthesizer.IsSSMLSupported() {
-		content = fmt.Sprintf(
-			"<speak><break time=\"%s\"/>%s<break time=\"%s\"/></speak>",
-			chapterTitleBreakTime,
-			content,
-			chapterTitleBreakTime)
-		ct = tts_integration.SSML
-	}
+	content, contentType := s.synthesizer.DecorateWithPauses(text, defaultPauseDuration)
 
-	return s.createContent(content, ct, absChapterFilename)
+	return s.createContent(content, contentType, absChapterFilename)
 }
 
 func (s *Synthesizer) CreateChapterParagraph(chapter, paragraph int, content string) error {
@@ -126,7 +118,7 @@ func (s *Synthesizer) CreatePause(chapter, paragraph int) error {
 		}
 	}
 
-	content, contentType := s.synthesizer.Pause(time.Second * 2)
+	content, contentType := s.synthesizer.DecorateWithPauses("", defaultPauseDuration)
 
 	return s.createContent(content, contentType, absChapterParagraphFilename)
 }
