@@ -36,6 +36,11 @@ info
     provider*=gcp,say^
     cost-per-million-characters
 
+languages
+    target
+    key-value$
+    key-filename$
+
 synthesize
     text-filename^*
     provider*=gcp,say^
@@ -44,6 +49,13 @@ synthesize
     voice-params&
     output-directory
     overwrite
+
+translate
+    directory
+    source
+    target*
+    key-value$
+    key-filename$
 
 voices
     provider*=gcp,say^

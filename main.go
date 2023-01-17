@@ -39,7 +39,9 @@ func main() {
 		"cleanup":          cli.CleanupHandler,
 		"cover":            cli.CoverHandler,
 		"info":             cli.InfoHandler,
+		"languages":        cli.LanguagesHandler,
 		"synthesize":       cli.SynthesizeHandler,
+		"translate":        cli.TranslateHandler,
 		"voices":           cli.VoicesHandler,
 	})
 
