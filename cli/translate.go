@@ -30,18 +30,24 @@ func TranslateHandler(u *url.URL) error {
 	return Translate(directory, source, target, key)
 }
 
-const (
-	epubXhtmlPattern = "/OEBPS/*.xhtml"
-)
+var epubHtmlPatterns = []string{"/OEBPS/*.xhtml", "/*.xhtml", "/html/*.html"}
 
 func Translate(directory, source, target, key string) error {
 
 	ta := nod.NewProgress("translating epub files...")
 	defer ta.End()
 
-	files, err := filepath.Glob(filepath.Join(directory, epubXhtmlPattern))
-	if err != nil {
-		return ta.EndWithError(err)
+	var files []string
+
+	for _, pattern := range epubHtmlPatterns {
+		var err error
+		files, err = filepath.Glob(filepath.Join(directory, pattern))
+		if err != nil {
+			return ta.EndWithError(err)
+		}
+		if len(files) > 0 {
+			break
+		}
 	}
 
 	ta.TotalInt(len(files))
@@ -93,6 +99,7 @@ func translateFile(filename, source, target, key string) error {
 		return err
 	}
 
+	// break into chunks to account for GCP 128 strings limit
 	for from := 0; from < len(contentLines); from += 127 {
 
 		to := minInt(from+127, len(contentLines))
