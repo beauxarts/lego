@@ -2,8 +2,10 @@ package cli
 
 import (
 	"bufio"
+	"errors"
 	"github.com/beauxarts/divido"
 	"github.com/beauxarts/polyglot"
+	"github.com/beauxarts/polyglot/acs"
 	"github.com/beauxarts/polyglot/gcp"
 	"github.com/boggydigital/nod"
 	"net/http"
@@ -16,7 +18,7 @@ func TranslateHandler(u *url.URL) error {
 	q := u.Query()
 
 	directory := q.Get("directory")
-	source, target := q.Get("source"), q.Get("target")
+	from, to := q.Get("from"), q.Get("to")
 
 	key := q.Get("key-value")
 	if key == "" {
@@ -27,12 +29,14 @@ func TranslateHandler(u *url.URL) error {
 		}
 	}
 
-	return Translate(directory, source, target, key)
+	provider := q.Get("provider")
+
+	return Translate(directory, provider, from, to, key)
 }
 
 var epubHtmlPatterns = []string{"/OEBPS/*.xhtml", "/*.xhtml", "/html/*.html"}
 
-func Translate(directory, source, target, key string) error {
+func Translate(directory, provider, from, to, key string) error {
 
 	ta := nod.NewProgress("translating epub files...")
 	defer ta.End()
@@ -52,8 +56,24 @@ func Translate(directory, source, target, key string) error {
 
 	ta.TotalInt(len(files))
 
+	var translator polyglot.Translator
+	var err error
+
+	switch provider {
+	case "gcp":
+		translator, err = gcp.NewTranslator(http.DefaultClient, gcp.NeuralMachineTranslation, key)
+	case "acs":
+		translator, err = acs.NewTranslator(http.DefaultClient, key)
+	default:
+		err = errors.New("unknown provider " + provider)
+	}
+
+	if err != nil {
+		return ta.EndWithError(err)
+	}
+
 	for _, filename := range files {
-		if err := translateFile(filename, source, target, key); err != nil {
+		if err := translateFile(translator, filename, from, to, key); err != nil {
 			return ta.EndWithError(err)
 		}
 
@@ -65,7 +85,7 @@ func Translate(directory, source, target, key string) error {
 	return nil
 }
 
-func translateFile(filename, source, target, key string) error {
+func translateFile(translator polyglot.Translator, filename, source, target, key string) error {
 
 	file, err := os.Open(filename)
 	defer file.Close()
@@ -94,18 +114,18 @@ func translateFile(filename, source, target, key string) error {
 		return nil
 	}
 
-	translator, err := gcp.NewTranslator(http.DefaultClient, gcp.NeuralMachineTranslation, key)
-	if err != nil {
-		return err
-	}
-
-	// break into chunks to account for GCP 128 strings limit
+	// break into chunks to account for 128 strings limit
 	for from := 0; from < len(contentLines); from += 127 {
 
 		to := minInt(from+127, len(contentLines))
 		cl := contentLines[from:to]
 
-		tc, err := translator.Translate(source, target, polyglot.HTML, cl...)
+		format := polyglot.Text
+		if translator.IsHTMLSupported() {
+			format = polyglot.HTML
+		}
+
+		tc, err := translator.Translate(source, target, format, cl...)
 		if err != nil {
 			return err
 		}

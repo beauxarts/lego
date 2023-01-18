@@ -37,7 +37,8 @@ info
     cost-per-million-characters
 
 languages
-    target
+    language
+    provider*=gcp,acs
     key-value$
     key-filename$
 
@@ -51,9 +52,10 @@ synthesize
     overwrite
 
 translate
-    directory
-    source
-    target*
+    directory^*
+    provider*=gcp,acs
+    from
+    to*
     key-value$
     key-filename$
 

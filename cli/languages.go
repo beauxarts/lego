@@ -1,6 +1,9 @@
 package cli
 
 import (
+	"errors"
+	"github.com/beauxarts/polyglot"
+	"github.com/beauxarts/polyglot/acs"
 	"github.com/beauxarts/polyglot/gcp"
 	"github.com/boggydigital/nod"
 	"net/http"
@@ -11,7 +14,7 @@ import (
 func LanguagesHandler(u *url.URL) error {
 	q := u.Query()
 
-	target := q.Get("target")
+	language := q.Get("language")
 	key := q.Get("key-value")
 	if key == "" {
 		//attempt to get the key from a file, if specified
@@ -21,19 +24,32 @@ func LanguagesHandler(u *url.URL) error {
 		}
 	}
 
-	return Languages(target, key)
+	provider := q.Get("provider")
+
+	return Languages(provider, language, key)
 }
 
-func Languages(target, key string) error {
+func Languages(provider, language, key string) error {
 	la := nod.Begin("languages available for translations:")
 	defer la.End()
 
-	translator, err := gcp.NewTranslator(http.DefaultClient, gcp.NeuralMachineTranslation, key)
+	var translator polyglot.Translator
+	var err error
+
+	switch provider {
+	case "gcp":
+		translator, err = gcp.NewTranslator(http.DefaultClient, gcp.NeuralMachineTranslation, key)
+	case "acs":
+		translator, err = acs.NewTranslator(http.DefaultClient, key)
+	default:
+		err = errors.New("unknown provider " + provider)
+	}
+
 	if err != nil {
 		return la.EndWithError(err)
 	}
 
-	languages, err := translator.Languages(target)
+	languages, err := translator.Languages(language)
 	if err != nil {
 		return la.EndWithError(err)
 	}
