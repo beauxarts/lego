@@ -38,6 +38,7 @@ func main() {
 		"chapter-metadata": cli.ChapterMetadataHandler,
 		"cleanup":          cli.CleanupHandler,
 		"cover":            cli.CoverHandler,
+		"create-audiobook": cli.CreateAudiobookHandler,
 		"info":             cli.InfoHandler,
 		"languages":        cli.LanguagesHandler,
 		"synthesize":       cli.SynthesizeHandler,

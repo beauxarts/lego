@@ -12,6 +12,7 @@ func VoicesHandler(u *url.URL) error {
 	q := u.Query()
 
 	provider := q.Get("provider")
+	region := q.Get("region")
 
 	key := q.Get("key-value")
 	if key == "" {
@@ -23,10 +24,10 @@ func VoicesHandler(u *url.URL) error {
 	}
 	locale := q.Get("locale")
 
-	return Voices(provider, key, locale)
+	return Voices(provider, region, key, locale)
 }
 
-func Voices(provider, key, locale string) error {
+func Voices(provider, region, key, locale string) error {
 
 	va := nod.Begin("available voices for the selected provider:")
 	defer va.End()
@@ -35,6 +36,8 @@ func Voices(provider, key, locale string) error {
 	var err error
 
 	switch provider {
+	case "acs":
+		szr, err = chapter_paragraph.NewACSSynthesizer(http.DefaultClient, nil, region, key, "", false)
 	case "gcp":
 		szr, err = chapter_paragraph.NewGCPSynthesizer(http.DefaultClient, nil, key, "", false)
 	case "say":

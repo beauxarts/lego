@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/beauxarts/tts_integration"
+	"github.com/beauxarts/tts_integration/acs"
 	"github.com/beauxarts/tts_integration/gcp"
 	"github.com/beauxarts/tts_integration/say"
 	"io"
@@ -71,6 +72,29 @@ func NewGCPSynthesizer(
 		synthesizer:     gcp.NewSynthesizer(hc, key, voiceParams...),
 		overwrite:       overwrite,
 		ext:             gcp.DefaultAudioEncodingExt,
+	}, nil
+}
+func NewACSSynthesizer(
+	hc *http.Client,
+	voiceParams []string,
+	region string,
+	key string,
+	outputDirectory string,
+	overwrite bool) (*Synthesizer, error) {
+
+	if outputDirectory != "" {
+		if _, err := os.Stat(outputDirectory); os.IsNotExist(err) {
+			if err := os.MkdirAll(outputDirectory, 0755); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return &Synthesizer{
+		outputDirectory: outputDirectory,
+		synthesizer:     acs.NewSynthesizer(hc, region, key, acs.DefaultAudioOutput, voiceParams...),
+		overwrite:       overwrite,
+		ext:             acs.DefaultAudioOutputExt,
 	}, nil
 }
 

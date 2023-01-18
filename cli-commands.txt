@@ -31,20 +31,35 @@ cover
     cover-filename*
     mp4art-cmd$
 
+create-audiobook
+    text-filename^*
+    directory
+    provider*=acs,gcp,say^
+    key-value$
+    key-filename$
+    voice-params&
+    import-metadata
+    title
+    author
+    cover-filename
+    mp4art-cmd$
+    ffmpeg-cmd$
+    overwrite
+
 info
     filename^*
-    provider*=gcp,say^
+    provider*=acs,gcp,say^
     cost-per-million-characters
 
 languages
     language
-    provider*=gcp,acs
+    provider*=acs,gcp
     key-value$
     key-filename$
 
 synthesize
     text-filename^*
-    provider*=gcp,say^
+    provider*=acs,gcp,say^
     key-value$
     key-filename$
     voice-params&
@@ -53,14 +68,15 @@ synthesize
 
 translate
     directory^*
-    provider*=gcp,acs
+    provider*=acs,gcp
     from
     to*
     key-value$
     key-filename$
 
 voices
-    provider*=gcp,say^
+    provider*=acs,gcp,say^
+    region
     key-value$
     key-filename$
     locale^
