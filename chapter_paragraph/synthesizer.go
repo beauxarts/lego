@@ -90,9 +90,14 @@ func NewACSSynthesizer(
 		}
 	}
 
+	s, err := acs.NewSynthesizer(hc, region, key, acs.DefaultAudioOutput, voiceParams...)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Synthesizer{
 		outputDirectory: outputDirectory,
-		synthesizer:     acs.NewSynthesizer(hc, region, key, acs.DefaultAudioOutput, voiceParams...),
+		synthesizer:     s,
 		overwrite:       overwrite,
 		ext:             acs.DefaultAudioOutputExt,
 	}, nil
