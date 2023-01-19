@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	defaultSayCostPerMillionChars = 0.0
+	defaultACSCostPerMillionChars = 16.0
 	defaultGCPCostPerMillionChars = 16.0
+	defaultSayCostPerMillionChars = 0.0
 )
 
 func InfoHandler(u *url.URL) error {
@@ -21,12 +22,14 @@ func InfoHandler(u *url.URL) error {
 	filename := q.Get("filename")
 	provider := q.Get("provider")
 
-	cpmc := defaultSayCostPerMillionChars
+	cpmc := 0.0
 	switch provider {
+	case "acs":
+		cpmc = defaultACSCostPerMillionChars
 	case "gcp":
 		cpmc = defaultGCPCostPerMillionChars
 	case "say":
-		//do nothing
+		cpmc = defaultSayCostPerMillionChars
 	}
 
 	cpmcs := q.Get("cost-per-million-characters")

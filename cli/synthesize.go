@@ -22,6 +22,7 @@ func SynthesizeHandler(u *url.URL) error {
 	textFilename := q.Get("text-filename")
 
 	provider := q.Get("provider")
+	region := q.Get("region")
 
 	key := q.Get("key-value")
 	if key == "" {
@@ -37,12 +38,13 @@ func SynthesizeHandler(u *url.URL) error {
 	outputDirectory := q.Get("output-directory")
 	overwrite := q.Has("overwrite")
 
-	return Synthesize(textFilename, provider, voiceParams, key, outputDirectory, overwrite)
+	return Synthesize(textFilename, provider, region, voiceParams, key, outputDirectory, overwrite)
 }
 
 func Synthesize(
 	textFilename string,
 	provider string,
+	region string,
 	voiceParams []string,
 	key, outputDirectory string,
 	overwrite bool) error {
@@ -80,6 +82,8 @@ func Synthesize(
 	var szr *chapter_paragraph.Synthesizer
 
 	switch provider {
+	case "acs":
+		szr, err = chapter_paragraph.NewACSSynthesizer(http.DefaultClient, voiceParams, region, key, outputDirectory, overwrite)
 	case "gcp":
 		szr, err = chapter_paragraph.NewGCPSynthesizer(http.DefaultClient, voiceParams, key, outputDirectory, overwrite)
 	case "say":

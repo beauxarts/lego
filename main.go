@@ -21,7 +21,7 @@ func main() {
 
 	nod.EnableStdOutPresenter()
 
-	ns := nod.NewProgress("lego is creating audiobooks for your listening pleasure")
+	ns := nod.NewProgress("lego is serving your literature needs")
 	defer ns.End()
 
 	defs, err := clo.Load(

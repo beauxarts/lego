@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"github.com/beauxarts/lego/chapter_paragraph"
 	"github.com/boggydigital/nod"
 	"net/http"
@@ -31,6 +32,10 @@ func Voices(provider, region, key, locale string) error {
 
 	va := nod.Begin("available voices for the selected provider:")
 	defer va.End()
+
+	if provider == "acs" && region == "" {
+		return va.EndWithError(errors.New("region required for acs"))
+	}
 
 	var szr *chapter_paragraph.Synthesizer
 	var err error

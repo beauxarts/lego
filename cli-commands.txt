@@ -49,6 +49,7 @@ create-audiobook
 info
     filename^*
     provider*=acs,gcp,say^
+    region
     cost-per-million-characters
 
 languages
@@ -60,9 +61,10 @@ languages
 synthesize
     text-filename^*
     provider*=acs,gcp,say^
+    region
     key-value$
     key-filename$
-    voice-params&
+    voice-params*&
     output-directory
     overwrite
 
