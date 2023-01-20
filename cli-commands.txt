@@ -25,6 +25,10 @@ chapter-metadata
 
 cleanup
     directory^
+    paragraphs
+    chapters
+    cover
+    all
 
 cover
     book-filename^*
@@ -35,6 +39,7 @@ create-audiobook
     text-filename^*
     directory
     provider*=acs,gcp,say^
+    region
     key-value$
     key-filename$
     voice-params&

@@ -37,7 +37,7 @@ func BindChaptersHandler(u *url.URL) error {
 
 func BindChapters(directory, ffmpegCmd string, overwrite bool) error {
 
-	bca := nod.NewProgress("binding paragraphs into chapterFiles...")
+	bca := nod.NewProgress("binding paragraphs into chapters...")
 	defer bca.End()
 
 	mfn := filepath.Join(directory, chapter_paragraph.RelChaptersFilename())

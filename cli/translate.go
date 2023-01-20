@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 func TranslateHandler(u *url.URL) error {
@@ -73,11 +74,18 @@ func Translate(directory, provider, from, to, key string) error {
 	}
 
 	for _, filename := range files {
-		if err := translateFile(translator, filename, from, to, key); err != nil {
+		if err := translateFile(translator, filename, from, to); err != nil {
 			return ta.EndWithError(err)
 		}
-
 		ta.Increment()
+	}
+
+	// moving translated files over originals
+	for _, filename := range files {
+		resultFilename := translatedFilename(filename)
+		if err := os.Rename(resultFilename, filename); err != nil {
+			return ta.EndWithError(err)
+		}
 	}
 
 	ta.EndWithResult("done")
@@ -85,7 +93,12 @@ func Translate(directory, provider, from, to, key string) error {
 	return nil
 }
 
-func translateFile(translator polyglot.Translator, filename, source, target, key string) error {
+func translateFile(translator polyglot.Translator, filename, source, target string) error {
+
+	resultFilename := translatedFilename(filename)
+	if _, err := os.Stat(resultFilename); err == nil {
+		return nil
+	}
 
 	file, err := os.Open(filename)
 	defer file.Close()
@@ -127,13 +140,17 @@ func translateFile(translator polyglot.Translator, filename, source, target, key
 
 		tc, err := translator.Translate(source, target, format, cl...)
 		if err != nil {
-			return err
+			if err.Error() == "429 Too Many Requests" {
+				time.Sleep(time.Millisecond * 500)
+			} else {
+				return err
+			}
 		}
 
 		tp.AddTranslatedContent(tc)
 	}
 
-	outf, err := os.Create(filename)
+	outf, err := os.Create(resultFilename)
 	defer outf.Close()
 	if err != nil {
 		return err
@@ -144,6 +161,14 @@ func translateFile(translator polyglot.Translator, filename, source, target, key
 	}
 
 	return nil
+}
+
+const (
+	translatedExt = ".translated"
+)
+
+func translatedFilename(filename string) string {
+	return filename + translatedExt
 }
 
 func minInt(x, y int) int {
