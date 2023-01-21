@@ -1,24 +1,18 @@
 package cli
 
 import (
-	"bufio"
-	"errors"
-	"github.com/beauxarts/divido"
-	"github.com/beauxarts/polyglot"
-	"github.com/beauxarts/polyglot/acs"
-	"github.com/beauxarts/polyglot/gcp"
+	"fmt"
 	"github.com/boggydigital/nod"
-	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
-	"time"
+	"strings"
 )
 
 func TranslateHandler(u *url.URL) error {
 	q := u.Query()
 
-	directory := q.Get("directory")
+	filename := q.Get("filename")
 	from, to := q.Get("from"), q.Get("to")
 
 	key := q.Get("key-value")
@@ -32,148 +26,34 @@ func TranslateHandler(u *url.URL) error {
 
 	provider := q.Get("provider")
 
-	return Translate(directory, provider, from, to, key)
+	return Translate(filename, provider, from, to, key)
 }
 
-var epubHtmlPatterns = []string{"/OEBPS/*.xhtml", "/*.xhtml", "/html/*.html"}
+func Translate(filename, provider, from, to, key string) error {
 
-func Translate(directory, provider, from, to, key string) error {
+	_, relFilename := filepath.Split(filename)
 
-	ta := nod.NewProgress("translating epub files...")
+	ta := nod.Begin("translating %s...", relFilename)
 	defer ta.End()
 
-	var files []string
+	tempDir := filepath.Join(os.TempDir(), strings.TrimSuffix(relFilename, filepath.Ext(relFilename)))
 
-	for _, pattern := range epubHtmlPatterns {
-		var err error
-		files, err = filepath.Glob(filepath.Join(directory, pattern))
-		if err != nil {
-			return ta.EndWithError(err)
-		}
-		if len(files) > 0 {
-			break
-		}
-	}
-
-	ta.TotalInt(len(files))
-
-	var translator polyglot.Translator
-	var err error
-
-	switch provider {
-	case "gcp":
-		translator, err = gcp.NewTranslator(http.DefaultClient, gcp.NeuralMachineTranslation, key)
-	case "acs":
-		translator, err = acs.NewTranslator(http.DefaultClient, key)
-	default:
-		err = errors.New("unknown provider " + provider)
-	}
-
-	if err != nil {
+	if err := unzipEpub(filename, tempDir); err != nil {
 		return ta.EndWithError(err)
 	}
 
-	for _, filename := range files {
-		if err := translateFile(translator, filename, from, to); err != nil {
-			return ta.EndWithError(err)
-		}
-		ta.Increment()
+	if err := translateDirectory(tempDir, provider, from, to, key); err != nil {
+		return ta.EndWithError(err)
 	}
 
-	// moving translated files over originals
-	for _, filename := range files {
-		resultFilename := translatedFilename(filename)
-		if err := os.Rename(resultFilename, filename); err != nil {
-			return ta.EndWithError(err)
-		}
+	ext := filepath.Ext(relFilename)
+	tFilename := fmt.Sprintf("%s_%s%s", strings.TrimSuffix(relFilename, ext), to, ext)
+
+	if err := zipEpub(tempDir, tFilename); err != nil {
+		return ta.EndWithError(err)
 	}
 
 	ta.EndWithResult("done")
 
 	return nil
-}
-
-func translateFile(translator polyglot.Translator, filename, source, target string) error {
-
-	resultFilename := translatedFilename(filename)
-	if _, err := os.Stat(resultFilename); err == nil {
-		return nil
-	}
-
-	file, err := os.Open(filename)
-	defer file.Close()
-	if err != nil {
-		return err
-	}
-
-	lines := make([]string, 0)
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-
-	if err := file.Close(); err != nil {
-		return err
-	}
-
-	tp := divido.NewTranslationPatch(lines...)
-
-	tp.UpdateContentDecorations()
-
-	contentLines := tp.SourceContent()
-
-	if len(contentLines) == 0 {
-		return nil
-	}
-
-	// break into chunks to account for 128 strings limit
-	for from := 0; from < len(contentLines); from += 127 {
-
-		to := minInt(from+127, len(contentLines))
-		cl := contentLines[from:to]
-
-		format := polyglot.Text
-		if translator.IsHTMLSupported() {
-			format = polyglot.HTML
-		}
-
-		tc, err := translator.Translate(source, target, format, cl...)
-		if err != nil {
-			if err.Error() == "429 Too Many Requests" {
-				time.Sleep(time.Millisecond * 500)
-			} else {
-				return err
-			}
-		}
-
-		tp.AddTranslatedContent(tc)
-	}
-
-	outf, err := os.Create(resultFilename)
-	defer outf.Close()
-	if err != nil {
-		return err
-	}
-
-	if err := tp.Apply(outf); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-const (
-	translatedExt = ".translated"
-)
-
-func translatedFilename(filename string) string {
-	return filename + translatedExt
-}
-
-func minInt(x, y int) int {
-	if x < y {
-		return x
-	}
-	return y
 }
