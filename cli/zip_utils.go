@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func unzipEpub(filename, dir string) error {
@@ -30,6 +31,10 @@ func unzipEpub(filename, dir string) error {
 	uea.TotalInt(len(zipFiles))
 
 	for _, zipFile := range zipFiles {
+		//check for Zip Slip
+		if strings.Contains(zipFile.Name, "..") {
+			continue
+		}
 		if err := unzipTo(zipFile, dir); err != nil {
 			return uea.EndWithError(err)
 		}
