@@ -32,23 +32,25 @@ func BindBookHandler(u *url.URL) error {
 
 	overwrite := q.Has("overwrite")
 
-	return BindBook(directory, ffmpegCmd, overwrite)
+	_, err := BindBook(directory, ffmpegCmd, overwrite)
+
+	return err
 }
 
-func BindBook(directory, ffmpegCmd string, overwrite bool) error {
+func BindBook(directory, ffmpegCmd string, overwrite bool) (string, error) {
 
 	bba := nod.Begin("binding chapters into a book...")
 	defer bba.End()
 
 	mfn := filepath.Join(directory, ffmpeg_integration.MetadataFilename)
 	if _, err := os.Stat(mfn); os.IsNotExist(err) {
-		return bba.EndWithError(errors.New("required metadata is not found in the provided directory"))
+		return "", bba.EndWithError(errors.New("required metadata is not found in the provided directory"))
 	}
 
 	mf, err := os.Open(mfn)
 	defer mf.Close()
 	if err != nil {
-		return bba.EndWithError(err)
+		return "", bba.EndWithError(err)
 	}
 
 	title, author := "", ""
@@ -79,10 +81,10 @@ func BindBook(directory, ffmpegCmd string, overwrite bool) error {
 	if _, err := os.Stat(bfn); err == nil {
 		if !overwrite {
 			bba.EndWithResult("book already exists")
-			return nil
+			return bfn, nil
 		} else {
 			if err := os.Remove(bfn); err != nil {
-				return bba.EndWithError(err)
+				return bfn, bba.EndWithError(err)
 			}
 		}
 	}
@@ -95,8 +97,8 @@ func BindBook(directory, ffmpegCmd string, overwrite bool) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		return bba.EndWithError(err)
+		return bfn, bba.EndWithError(err)
 	}
 
-	return nil
+	return bfn, nil
 }

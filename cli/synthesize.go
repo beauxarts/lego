@@ -20,6 +20,7 @@ func SynthesizeHandler(u *url.URL) error {
 	q := u.Query()
 
 	textFilename := q.Get("text-filename")
+	outputDirectory := q.Get("output-directory")
 
 	provider := q.Get("provider")
 	region := q.Get("region")
@@ -35,18 +36,16 @@ func SynthesizeHandler(u *url.URL) error {
 
 	voiceParams := strings.Split(q.Get("voice-params"), ",")
 
-	outputDirectory := q.Get("output-directory")
 	overwrite := q.Has("overwrite")
 
-	return Synthesize(textFilename, provider, region, voiceParams, key, outputDirectory, overwrite)
+	return Synthesize(textFilename, outputDirectory, provider, region, key, voiceParams, overwrite)
 }
 
 func Synthesize(
 	textFilename string,
-	provider string,
-	region string,
+	outputDirectory string,
+	provider, region, key string,
 	voiceParams []string,
-	key, outputDirectory string,
 	overwrite bool) error {
 	sa := nod.NewProgress("synthesizing chapter paragraphs from text...")
 	defer sa.End()

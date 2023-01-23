@@ -37,7 +37,7 @@ cover
 
 create-audiobook
     text-filename^*
-    directory
+    output-directory
     provider*=acs,gcp,say^
     region
     key-value$
