@@ -98,6 +98,7 @@ func ChapterMetadata(directory, importMetadata, title, author string, overwrite 
 	}
 	if author != "" {
 		metadata["author"] = author
+		metadata["artist"] = author
 	}
 
 	if err := ffmpeg_integration.CreateMetadata(mfn, metadata, chaptersFileTitle, chaptersFileDuration); err != nil {

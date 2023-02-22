@@ -2,12 +2,10 @@ package chapter_paragraph
 
 import (
 	"errors"
-	"fmt"
 	"github.com/beauxarts/tts_integration"
 	"github.com/beauxarts/tts_integration/acs"
 	"github.com/beauxarts/tts_integration/gcp"
 	"github.com/beauxarts/tts_integration/say"
-	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -183,47 +181,11 @@ func (s *Synthesizer) createContent(
 }
 
 func (s *Synthesizer) CreateChapterFilesList(chapter, paragraphsCount int) error {
-
-	chapterFilename := RelChapterFilename(chapter+1, s.ext)
-
-	cfn := filepath.Join(
-		s.outputDirectory,
-		RelChapterFilesFilename(chapterFilename))
-
-	chaptersFile, err := os.Create(cfn)
-	defer chaptersFile.Close()
-	if err != nil {
-		return err
-	}
-
-	for pp := -1; pp < paragraphsCount; pp++ {
-		fn := RelChapterParagraphFilename(chapter+1, pp+1, s.ext)
-		if _, err = io.WriteString(chaptersFile, fmt.Sprintf("file '%s'\n", fn)); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return CreateChapterFilesList(s.outputDirectory, chapter, paragraphsCount, s.ext)
 }
 
 func (s *Synthesizer) CreateChapters(chapterTitles []string) error {
-	ctfn := filepath.Join(
-		s.outputDirectory,
-		chaptersFilename)
-
-	chapterTitlesFile, err := os.Create(ctfn)
-	defer chapterTitlesFile.Close()
-	if err != nil {
-		return err
-	}
-
-	for ci, ct := range chapterTitles {
-		if _, err := io.WriteString(chapterTitlesFile, fmt.Sprintf("%s=%s\n", RelChapterFilename(ci+1, s.ext), ct)); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return CreateChapters(s.outputDirectory, s.ext, chapterTitles)
 }
 
 func (s *Synthesizer) Voices(locale string) ([]string, error) {

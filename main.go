@@ -33,17 +33,19 @@ func main() {
 	}
 
 	clo.HandleFuncs(map[string]clo.Handler{
-		"bind-book":        cli.BindBookHandler,
-		"bind-chapters":    cli.BindChaptersHandler,
-		"chapter-metadata": cli.ChapterMetadataHandler,
-		"cleanup":          cli.CleanupHandler,
-		"cover":            cli.CoverHandler,
-		"create-audiobook": cli.CreateAudiobookHandler,
-		"info":             cli.InfoHandler,
-		"languages":        cli.LanguagesHandler,
-		"synthesize":       cli.SynthesizeHandler,
-		"translate":        cli.TranslateHandler,
-		"voices":           cli.VoicesHandler,
+		"bind-book":                 cli.BindBookHandler,
+		"bind-chapters":             cli.BindChaptersHandler,
+		"chapter-metadata":          cli.ChapterMetadataHandler,
+		"cleanup":                   cli.CleanupHandler,
+		"cover":                     cli.CoverHandler,
+		"create-audiobook":          cli.CreateAudiobookHandler,
+		"info":                      cli.InfoHandler,
+		"languages":                 cli.LanguagesHandler,
+		"pack-audiobook":            cli.PackAudiobookHandler,
+		"prepare-external-chapters": cli.PrepareExternalChaptersHandler,
+		"synthesize":                cli.SynthesizeHandler,
+		"translate":                 cli.TranslateHandler,
+		"voices":                    cli.VoicesHandler,
 	})
 
 	if err := defs.AssertCommandsHaveHandlers(); err != nil {

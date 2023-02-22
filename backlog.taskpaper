@@ -1,40 +1,47 @@
-Text processor (divido):
-	- Only support .txt files
-		- Add documentation to support converting other formats to .txt (https://textract.readthedocs.io/en/stable/)
-			- Calibre
-	- Break large text files into >5000 characters segments:
-		- Break text into "chapters"
-		- Break large chunk into "paragraphs"
-		- If needed, break "paragraphs" into "sentences"
-		- Validate that anticipated payload would not have "sentences" more than 5000 characters (or whatever is the limit with other data)
-		
-Improve results with SSML:
-	- https://learn.microsoft.com/en-us/azure/cognitive-services/speech-service/speech-synthesis-markup-structure
-	- Add paragraph, sentence markers
-	- Replace Significant breaks with pauses
-	- etc
-		
-Azure Cognitive Services text-to-speech API Client:
-	- https://learn.microsoft.com/en-us/azure/cognitive-services/speech-service/index-text-to-speech
-	- Batch Synthesis client: https://learn.microsoft.com/en-us/azure/cognitive-services/speech-service/batch-synthesis
-	
-ffmpeg integration:
-	- generate ffmpeg command to concatenate all chunks into a single m4b audiobook
-	- figure out metadata
-	- should work with LitRes mp3 to concatenate them
-	
-lego app:
-	- add clo cmds and handlers:
-		- list-voices
-		- synthesize
-			- split .txt file into chapters - paragraphs - sentences
-			- use GCP TTS to convert to OGG
-			- concatenate with ffmpeg
-				- add metadata
-		- bind
-			- concatenate mp3s to m4b
-			- (replace AudioBookBinder in my own setup)
+Add import cmd that allows binding chapters not produced by lego:
+	- cmd support folder parameter
+	- does everything except for synthesis
+		- rename chapters to chapter-paragraph scheme
+		- generate chapters list
+		- (everything else should just flow from that)
+
 Archive:
+	Text processor (divido): @done(2023-02-18)
+		- Only support .txt files @done(2023-02-18)
+			- Add documentation to support converting other formats to .txt (https://textract.readthedocs.io/en/stable/) @done(2023-02-18)
+				- Calibre @done(2023-02-18)
+		- Break large text files into >5000 characters segments: @done(2023-02-18)
+			- Break text into "chapters" @done(2023-02-18)
+			- Break large chunk into "paragraphs" @done(2023-02-18)
+			- If needed, break "paragraphs" into "sentences" @done(2023-02-18)
+			- Validate that anticipated payload would not have "sentences" more than 5000 characters (or whatever is the limit with other data) @done(2023-02-18)
+			
+	Improve results with SSML: @done(2023-02-18)
+		- https://learn.microsoft.com/en-us/azure/cognitive-services/speech-service/speech-synthesis-markup-structure @done(2023-02-18)
+		- Add paragraph, sentence markers @done(2023-02-18)
+		- Replace Significant breaks with pauses @done(2023-02-18)
+		- etc @done(2023-02-18)
+			
+	Azure Cognitive Services text-to-speech API Client: @done(2023-02-18)
+		- https://learn.microsoft.com/en-us/azure/cognitive-services/speech-service/index-text-to-speech @done(2023-02-18)
+		- Batch Synthesis client: https://learn.microsoft.com/en-us/azure/cognitive-services/speech-service/batch-synthesis @done(2023-02-18)
+		
+	ffmpeg integration: @done(2023-02-18)
+		- generate ffmpeg command to concatenate all chunks into a single m4b audiobook @done(2023-02-18)
+		- figure out metadata @done(2023-02-18)
+		- should work with LitRes mp3 to concatenate them @done(2023-02-18)
+		
+	lego app: @done(2023-02-18)
+		- add clo cmds and handlers: @done(2023-02-18)
+			- list-voices @done(2023-02-18)
+			- synthesize @done(2023-02-18)
+				- split .txt file into chapters - paragraphs - sentences @done(2023-02-18)
+				- use GCP TTS to convert to OGG @done(2023-02-18)
+				- concatenate with ffmpeg @done(2023-02-18)
+					- add metadata @done(2023-02-18)
+			- bind @done(2023-02-18)
+				- concatenate mp3s to m4b @done(2023-02-18)
+				- (replace AudioBookBinder in my own setup) @done(2023-02-18)
 	GCP Text-to-Speech API Client (google-tts-integration): @done(2023-01-03)
 		- Wrap APIs: @done(2023-01-03)
 			- https://cloud.google.com/text-to-speech @done(2023-01-03)

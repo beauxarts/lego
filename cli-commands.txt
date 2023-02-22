@@ -63,6 +63,21 @@ languages
     key-value$
     key-filename$
 
+pack-audiobook
+    directory
+    extension
+    import-metadata
+    title
+    author
+    cover-filename
+    mp4art-cmd$
+    ffmpeg-cmd$
+    overwrite
+
+prepare-external-chapters
+    directory
+    extension
+
 synthesize
     text-filename^*
     provider*=acs,gcp,say^
