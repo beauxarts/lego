@@ -65,10 +65,10 @@ func BindChapters(directory, ffmpegCmd string, overwrite bool) error {
 		chapter_paragraph.RelBookFilesFilename())
 
 	bf, err := os.Create(bfn)
-	defer bf.Close()
 	if err != nil {
 		return bca.EndWithError(err)
 	}
+	defer bf.Close()
 
 	for _, relCfn := range chapterFiles {
 

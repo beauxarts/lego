@@ -28,17 +28,23 @@ func ExtractChapterDuration(filename string) (int64, error) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, sizePrefix) {
-			parts := strings.Split(line, " ")
-			for _, p := range parts {
-				if strings.HasPrefix(p, timePrefix) {
-					ts := strings.TrimPrefix(p, timePrefix)
-					if td, err := time.Parse("15:04:5.00", ts); err == nil {
-						dur := td.Sub(zeroDate)
-						if dm := dur.Milliseconds(); dm > 0 && maxDur < dm {
-							maxDur = dm
+			for _, l := range strings.Split(line, "\r") {
+				// skip zero size, bitrate lines
+				if strings.Contains(l, "0kB") && strings.Contains(l, "-0.0kbits/s") {
+					continue
+				}
+				parts := strings.Split(l, " ")
+				for _, p := range parts {
+					if strings.HasPrefix(p, timePrefix) {
+						ts := strings.TrimPrefix(p, timePrefix)
+						if td, err := time.Parse("15:04:5.00", ts); err == nil {
+							dur := td.Sub(zeroDate)
+							if dm := dur.Milliseconds(); dm > 0 && maxDur < dm {
+								maxDur = dm
+							}
+						} else {
+							return 0, err
 						}
-					} else {
-						return 0, err
 					}
 				}
 			}

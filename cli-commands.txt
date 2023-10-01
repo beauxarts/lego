@@ -23,13 +23,6 @@ chapter-metadata
     author
     overwrite
 
-cleanup
-    directory^
-    paragraphs
-    chapters
-    cover
-    all
-
 cover
     book-filename^*
     cover-filename*

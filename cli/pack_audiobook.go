@@ -59,7 +59,7 @@ func PackAudioBook(
 	ffmpegCmd, mp4artCmd string,
 	overwrite bool) error {
 
-	//pac audiobook =
+	//pack audiobook =
 	//prepare external chapters (rename + generate chapter .txt files) +
 	//bind-chapters +
 	//chapter-metadata +

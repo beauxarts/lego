@@ -36,7 +36,6 @@ func main() {
 		"bind-book":                 cli.BindBookHandler,
 		"bind-chapters":             cli.BindChaptersHandler,
 		"chapter-metadata":          cli.ChapterMetadataHandler,
-		"cleanup":                   cli.CleanupHandler,
 		"cover":                     cli.CoverHandler,
 		"create-audiobook":          cli.CreateAudiobookHandler,
 		"info":                      cli.InfoHandler,
