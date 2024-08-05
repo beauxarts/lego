@@ -1,6 +1,6 @@
 module github.com/beauxarts/lego
 
-go 1.21
+go 1.22
 
 require (
 	github.com/beauxarts/divido v0.1.7
@@ -9,5 +9,5 @@ require (
 	github.com/boggydigital/clo v1.0.4
 	github.com/boggydigital/nod v0.1.21
 	github.com/boggydigital/wits v0.2.3
-	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
+	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 )
