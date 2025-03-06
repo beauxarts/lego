@@ -23,16 +23,16 @@ func PrepareExternalChaptersHandler(u *url.URL) error {
 func PrepareExternalChapters(directory, ext string) error {
 
 	pca := nod.NewProgress("preparing chapters...")
-	defer pca.End()
+	defer pca.Done()
 
 	di, err := os.Open(directory)
 	if err != nil {
-		return pca.EndWithError(err)
+		return err
 	}
 
 	existingFiles, err := di.Readdirnames(-1)
 	if err != nil {
-		return pca.EndWithError(err)
+		return err
 	}
 
 	sort.Strings(existingFiles)
@@ -52,11 +52,11 @@ func PrepareExternalChapters(directory, ext string) error {
 		absNew := filepath.Join(directory, relNew)
 
 		if err := os.Rename(absOld, absNew); err != nil {
-			return pca.EndWithError(err)
+			return err
 		}
 
 		if err := chapter_paragraph.CreateChapterFilesList(directory, chapter, 0, ext); err != nil {
-			return pca.EndWithError(err)
+			return err
 		}
 
 		chapter++
@@ -69,10 +69,8 @@ func PrepareExternalChapters(directory, ext string) error {
 	}
 
 	if err := chapter_paragraph.CreateChapters(directory, ext, chapterTitles); err != nil {
-		return pca.EndWithError(err)
+		return err
 	}
-
-	pca.EndWithResult("done")
 
 	return nil
 }

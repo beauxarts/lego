@@ -31,7 +31,7 @@ func LanguagesHandler(u *url.URL) error {
 
 func Languages(provider, language, key string) error {
 	la := nod.Begin("languages available for translations:")
-	defer la.End()
+	defer la.Done()
 
 	var translator polyglot.Translator
 	var err error
@@ -46,20 +46,18 @@ func Languages(provider, language, key string) error {
 	}
 
 	if err != nil {
-		return la.EndWithError(err)
+		return err
 	}
 
 	languages, err := translator.Languages(language)
 	if err != nil {
-		return la.EndWithError(err)
+		return err
 	}
 
 	for lang, name := range languages {
 		v := nod.Begin("- %s: %s", lang, name)
-		v.End()
+		v.Done()
 	}
-
-	la.EndWithResult("done")
 
 	return nil
 }

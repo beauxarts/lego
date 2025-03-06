@@ -38,13 +38,13 @@ func BindChaptersHandler(u *url.URL) error {
 func BindChapters(directory, ffmpegCmd string, overwrite bool) error {
 
 	bca := nod.NewProgress("binding paragraphs into chapters...")
-	defer bca.End()
+	defer bca.Done()
 
 	mfn := filepath.Join(directory, chapter_paragraph.RelChaptersFilename())
 	mf, err := os.Open(mfn)
 	defer mf.Close()
 	if err != nil {
-		return bca.EndWithError(err)
+		return err
 	}
 
 	chapterFiles := make([]string, 0)
@@ -66,7 +66,7 @@ func BindChapters(directory, ffmpegCmd string, overwrite bool) error {
 
 	bf, err := os.Create(bfn)
 	if err != nil {
-		return bca.EndWithError(err)
+		return err
 	}
 	defer bf.Close()
 
@@ -81,7 +81,7 @@ func BindChapters(directory, ffmpegCmd string, overwrite bool) error {
 				continue
 			} else {
 				if err := os.Remove(absCfn); err != nil {
-					return bca.EndWithError(err)
+					return err
 				}
 			}
 
@@ -92,7 +92,7 @@ func BindChapters(directory, ffmpegCmd string, overwrite bool) error {
 		cbof, err := os.Create(cbofn)
 		defer cbof.Close()
 		if err != nil {
-			return bca.EndWithError(err)
+			return err
 		}
 
 		args := []string{"-f", "concat", "-i", cflfn, "-c", "copy", absCfn}
@@ -100,18 +100,16 @@ func BindChapters(directory, ffmpegCmd string, overwrite bool) error {
 		cmd.Stdout = cbof
 		cmd.Stderr = cbof
 		if err = cmd.Run(); err != nil {
-			return bca.EndWithError(err)
+			return err
 		}
 
 		fileLine := fmt.Sprintf("file '%s'\n", relCfn)
 		if _, err = io.WriteString(bf, fileLine); err != nil {
-			return bca.EndWithError(err)
+			return err
 		}
 
 		bca.Increment()
 	}
-
-	bca.EndWithResult("done")
 
 	return nil
 }

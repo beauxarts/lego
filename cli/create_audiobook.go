@@ -84,32 +84,30 @@ func CreateAudiobook(
 	//cover
 
 	caa := nod.Begin("creating audiobook...")
-	defer caa.End()
+	defer caa.Done()
 
 	if err := Synthesize(textFilename, outputDirectory, provider, reqion, key, voiceParams, overwrite); err != nil {
-		return caa.EndWithError(err)
+		return err
 	}
 
 	if err := BindChapters(outputDirectory, ffmpegCmd, overwrite); err != nil {
-		return caa.EndWithError(err)
+		return err
 	}
 
 	if err := ChapterMetadata(outputDirectory, importMetadata, title, author, overwrite); err != nil {
-		return caa.EndWithError(err)
+		return err
 	}
 
 	bookFilename, err := BindBook(outputDirectory, ffmpegCmd, overwrite)
 	if err != nil {
-		return caa.EndWithError(err)
+		return err
 	}
 
 	if mp4artCmd != "" && coverFilename != "" {
 		if err := Cover(bookFilename, coverFilename, mp4artCmd); err != nil {
-			return caa.EndWithError(err)
+			return err
 		}
 	}
-
-	caa.EndWithResult("done")
 
 	return nil
 }

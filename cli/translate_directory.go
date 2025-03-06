@@ -21,7 +21,7 @@ var epubHtmlPatterns = []string{
 func translateDirectory(directory, provider, from, to, key string) error {
 
 	ta := nod.NewProgress("translating epub files...")
-	defer ta.End()
+	defer ta.Done()
 
 	var files []string
 
@@ -29,7 +29,7 @@ func translateDirectory(directory, provider, from, to, key string) error {
 		var err error
 		files, err = filepath.Glob(filepath.Join(directory, pattern))
 		if err != nil {
-			return ta.EndWithError(err)
+			return err
 		}
 		if len(files) > 0 {
 			break
@@ -51,12 +51,12 @@ func translateDirectory(directory, provider, from, to, key string) error {
 	}
 
 	if err != nil {
-		return ta.EndWithError(err)
+		return err
 	}
 
 	for _, filename := range files {
 		if err := translateFile(translator, filename, from, to); err != nil {
-			return ta.EndWithError(err)
+			return err
 		}
 		ta.Increment()
 	}
@@ -65,11 +65,9 @@ func translateDirectory(directory, provider, from, to, key string) error {
 	for _, filename := range files {
 		resultFilename := translatedFilename(filename)
 		if err := os.Rename(resultFilename, filename); err != nil {
-			return ta.EndWithError(err)
+			return err
 		}
 	}
-
-	ta.EndWithResult("done")
 
 	return nil
 }

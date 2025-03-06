@@ -14,16 +14,16 @@ func unzipEpub(filename, dir string) error {
 	_, relFilename := filepath.Split(filename)
 
 	uea := nod.NewProgress(" unpacking %s...", relFilename)
-	defer uea.End()
+	defer uea.Done()
 
 	zr, err := zip.OpenReader(filename)
 	if err != nil {
-		return uea.EndWithError(err)
+		return err
 	}
 	defer zr.Close()
 
 	if err := os.MkdirAll(dir, 0755); err != nil {
-		return uea.EndWithError(err)
+		return err
 	}
 
 	zipFiles := zr.File
@@ -36,12 +36,10 @@ func unzipEpub(filename, dir string) error {
 			continue
 		}
 		if err := unzipTo(zipFile, dir); err != nil {
-			return uea.EndWithError(err)
+			return err
 		}
 		uea.Increment()
 	}
-
-	uea.EndWithResult("done")
 
 	return nil
 }
@@ -56,13 +54,14 @@ func unzipTo(zipFile *zip.File, dir string) error {
 	absFilename := filepath.Join(dir, zipFile.Name)
 
 	if zipFile.FileInfo().IsDir() {
-		if err := os.MkdirAll(absFilename, 0755); err != nil {
+		if err = os.MkdirAll(absFilename, 0755); err != nil {
 			return err
 		}
 	} else {
-		if err := os.MkdirAll(filepath.Dir(absFilename), 0755); err != nil {
+		if err = os.MkdirAll(filepath.Dir(absFilename), 0755); err != nil {
 			return err
 		}
+
 		f, err := os.Create(absFilename)
 		if err != nil {
 			return err
@@ -80,11 +79,11 @@ func zipEpub(dir, filename string) error {
 
 	_, relFilename := filepath.Split(filename)
 	zea := nod.NewProgress(" packing %s...", relFilename)
-	defer zea.End()
+	defer zea.Done()
 
 	file, err := os.Create(filename)
 	if err != nil {
-		return zea.EndWithError(err)
+		return err
 	}
 	defer file.Close()
 
@@ -98,10 +97,8 @@ func zipEpub(dir, filename string) error {
 
 	err = filepath.Walk(dir, zw.zipPath)
 	if err != nil {
-		return zea.EndWithError(err)
+		return err
 	}
-
-	zea.EndWithResult("done")
 
 	return nil
 }

@@ -31,14 +31,14 @@ func CoverHandler(u *url.URL) error {
 func Cover(bookFilename, coverFilename, mp4artCmd string) error {
 
 	aca := nod.Begin("adding cover image...")
-	defer aca.End()
+	defer aca.Done()
 
 	if _, err := os.Stat(bookFilename); os.IsNotExist(err) {
-		return aca.EndWithError(errors.New("input file not found"))
+		return errors.New("input file not found")
 	}
 
 	if _, err := os.Stat(coverFilename); os.IsNotExist(err) {
-		return aca.EndWithError(errors.New("cover file not found"))
+		return errors.New("cover file not found")
 	}
 
 	args := []string{"--add", coverFilename, bookFilename}
@@ -46,10 +46,8 @@ func Cover(bookFilename, coverFilename, mp4artCmd string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		return aca.EndWithError(err)
+		return err
 	}
-
-	aca.EndWithResult("done")
 
 	return nil
 }

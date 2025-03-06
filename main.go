@@ -22,7 +22,7 @@ func main() {
 	nod.EnableStdOutPresenter()
 
 	ns := nod.NewProgress("lego is serving your literature needs")
-	defer ns.End()
+	defer ns.Done()
 
 	defs, err := clo.Load(
 		bytes.NewBuffer(cliCommands),
@@ -47,11 +47,11 @@ func main() {
 		"voices":                    cli.VoicesHandler,
 	})
 
-	if err := defs.AssertCommandsHaveHandlers(); err != nil {
+	if err = defs.AssertCommandsHaveHandlers(); err != nil {
 		log.Fatalln(err)
 	}
 
-	if err := defs.Serve(os.Args[1:]); err != nil {
+	if err = defs.Serve(os.Args[1:]); err != nil {
 		log.Fatalln(err)
 	}
 }

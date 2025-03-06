@@ -40,17 +40,17 @@ func BindBookHandler(u *url.URL) error {
 func BindBook(directory, ffmpegCmd string, overwrite bool) (string, error) {
 
 	bba := nod.Begin("binding chapters into a book...")
-	defer bba.End()
+	defer bba.Done()
 
 	mfn := filepath.Join(directory, ffmpeg_integration.MetadataFilename)
 	if _, err := os.Stat(mfn); os.IsNotExist(err) {
-		return "", bba.EndWithError(errors.New("required metadata is not found in the provided directory"))
+		return "", errors.New("required metadata is not found in the provided directory")
 	}
 
 	mf, err := os.Open(mfn)
 	defer mf.Close()
 	if err != nil {
-		return "", bba.EndWithError(err)
+		return "", err
 	}
 
 	title, author := "", ""
@@ -84,7 +84,7 @@ func BindBook(directory, ffmpegCmd string, overwrite bool) (string, error) {
 			return bfn, nil
 		} else {
 			if err := os.Remove(bfn); err != nil {
-				return bfn, bba.EndWithError(err)
+				return bfn, err
 			}
 		}
 	}
@@ -97,7 +97,7 @@ func BindBook(directory, ffmpegCmd string, overwrite bool) (string, error) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		return bfn, bba.EndWithError(err)
+		return bfn, err
 	}
 
 	return bfn, nil

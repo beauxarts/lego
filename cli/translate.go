@@ -34,26 +34,24 @@ func Translate(filename, provider, from, to, key string) error {
 	_, relFilename := filepath.Split(filename)
 
 	ta := nod.Begin("translating %s...", relFilename)
-	defer ta.End()
+	defer ta.Done()
 
 	tempDir := filepath.Join(os.TempDir(), strings.TrimSuffix(relFilename, filepath.Ext(relFilename)))
 
 	if err := unzipEpub(filename, tempDir); err != nil {
-		return ta.EndWithError(err)
+		return err
 	}
 
 	if err := translateDirectory(tempDir, provider, from, to, key); err != nil {
-		return ta.EndWithError(err)
+		return err
 	}
 
 	ext := filepath.Ext(relFilename)
 	tFilename := fmt.Sprintf("%s_%s%s", strings.TrimSuffix(relFilename, ext), to, ext)
 
 	if err := zipEpub(tempDir, tFilename); err != nil {
-		return ta.EndWithError(err)
+		return err
 	}
-
-	ta.EndWithResult("done")
 
 	return nil
 }

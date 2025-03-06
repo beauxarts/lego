@@ -4,10 +4,10 @@ import (
 	"github.com/beauxarts/divido"
 	"github.com/beauxarts/lego/chapter_paragraph"
 	"github.com/boggydigital/nod"
-	"golang.org/x/exp/slices"
 	"net/http"
 	"net/url"
 	"os"
+	"slices"
 	"strings"
 )
 
@@ -48,7 +48,7 @@ func Synthesize(
 	voiceParams []string,
 	overwrite bool) error {
 	sa := nod.NewProgress("synthesizing chapter paragraphs from text...")
-	defer sa.End()
+	defer sa.Done()
 
 	//in order to convert text file to audiobook the following steps are required:
 	//- process text document to identify chapters, paragraphs
@@ -59,17 +59,17 @@ func Synthesize(
 	file, err := os.Open(textFilename)
 	defer file.Close()
 	if err != nil {
-		return sa.EndWithError(err)
+		return err
 	}
 
 	var td divido.TextDocument
 
 	notesFilename := divido.DefaultNotesFilename(textFilename)
-	if _, err := os.Stat(notesFilename); err == nil {
+	if _, err = os.Stat(notesFilename); err == nil {
 		notes, err := os.Open(notesFilename)
 		defer notes.Close()
 		if err != nil {
-			return sa.EndWithError(err)
+			return err
 		}
 		td = divido.NewTextDocumentWithNotes(file, notes)
 	} else {
@@ -90,7 +90,7 @@ func Synthesize(
 	}
 
 	if err != nil {
-		return sa.EndWithError(err)
+		return err
 	}
 
 	sa.TotalInt(len(chapters))
@@ -98,7 +98,7 @@ func Synthesize(
 	for ci, ct := range chapters {
 
 		if err := szr.CreateChapterTitle(ci, ct); err != nil {
-			return sa.EndWithError(err)
+			return err
 		}
 
 		pa := nod.NewProgress(" synthesizing chapter %d paragraphs...", ci+1)
@@ -111,31 +111,29 @@ func Synthesize(
 			pts := strings.TrimSpace(string(pt))
 			if slices.Contains(breakAliases, pts) {
 				if err = szr.CreatePause(ci, pi); err != nil {
-					return pa.EndWithError(err)
+					return err
 				}
 				continue
 			}
 
 			if err = szr.CreateChapterParagraph(ci, pi, pts); err != nil {
-				return pa.EndWithError(err)
+				return err
 			}
 			pa.Increment()
 		}
 
-		pa.EndWithResult("done")
+		pa.Done()
 
 		if err = szr.CreateChapterFilesList(ci, len(paragraphs)); err != nil {
-			return sa.EndWithError(err)
+			return err
 		}
 
 		sa.Increment()
 	}
 
-	if err := szr.CreateChapters(td.ChapterTitles()); err != nil {
-		return sa.EndWithError(err)
+	if err = szr.CreateChapters(td.ChapterTitles()); err != nil {
+		return err
 	}
-
-	sa.EndWithResult("done")
 
 	return nil
 }

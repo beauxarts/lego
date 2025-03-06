@@ -26,7 +26,7 @@ func ChapterMetadataHandler(u *url.URL) error {
 
 func ChapterMetadata(directory, importMetadata, title, author string, overwrite bool) error {
 	cma := nod.Begin("generating ffmpeg chapter metadata...")
-	defer cma.End()
+	defer cma.Done()
 
 	mfn := filepath.Join(
 		directory,
@@ -43,7 +43,7 @@ func ChapterMetadata(directory, importMetadata, title, author string, overwrite 
 	ctf, err := os.Open(ctfn)
 	defer ctf.Close()
 	if err != nil {
-		return cma.EndWithError(err)
+		return err
 	}
 
 	chaptersFileTitle := make(map[string]string, 0)
@@ -67,7 +67,7 @@ func ChapterMetadata(directory, importMetadata, title, author string, overwrite 
 
 		dur, err := ffmpeg_integration.ExtractChapterDuration(fofn)
 		if err != nil {
-			return cma.EndWithError(err)
+			return err
 		}
 
 		chaptersFileDuration[cfn] = dur
@@ -78,11 +78,11 @@ func ChapterMetadata(directory, importMetadata, title, author string, overwrite 
 	if _, err := os.Stat(importMetadata); err == nil {
 		imf, err := os.Open(importMetadata)
 		if err != nil {
-			return cma.EndWithError(err)
+			return err
 		}
 		skv, err := wits.ReadSectionKeyValue(imf)
 		if err != nil {
-			return cma.EndWithError(err)
+			return err
 		}
 
 		if len(skv) > 0 {
@@ -102,10 +102,8 @@ func ChapterMetadata(directory, importMetadata, title, author string, overwrite 
 	}
 
 	if err := ffmpeg_integration.CreateMetadata(mfn, metadata, chaptersFileTitle, chaptersFileDuration); err != nil {
-		return cma.EndWithError(err)
+		return err
 	}
-
-	cma.EndWithResult("done")
 
 	return nil
 }

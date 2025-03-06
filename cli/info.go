@@ -42,28 +42,28 @@ func InfoHandler(u *url.URL) error {
 
 func Info(filename, provider string, costPerMillionChars float64) error {
 	ia := nod.Begin("document info:")
-	defer ia.End()
+	defer ia.Done()
 
 	cea := nod.Begin(" estimating synthesis cost (%s)...", provider)
-	defer cea.End()
+	defer cea.Done()
 
 	if stat, err := os.Stat(filename); err == nil {
 		estCost := float64(stat.Size()) * costPerMillionChars / math.Pow(10, 6)
 		cea.EndWithResult("~$%.2f (at $%.2f/1M chars)", estCost, costPerMillionChars)
 	} else {
-		return cea.EndWithError(errors.New("input file not found: " + filename))
+		return errors.New("input file not found: " + filename)
 	}
 
 	file, err := os.Open(filename)
 	defer file.Close()
 	if err != nil {
-		return ia.EndWithError(err)
+		return err
 	}
 
 	td := divido.NewTextDocument(file)
 
 	cla := nod.Begin("chapter info:")
-	defer cla.End()
+	defer cla.Done()
 
 	for _, ct := range td.ChapterTitles() {
 		cta := nod.Begin(" \"%s\":", ct)
@@ -82,10 +82,8 @@ func Info(filename, provider string, costPerMillionChars float64) error {
 		cia := nod.Begin("")
 		cia.EndWithResult("- %d paragraphs, longest: %d chars, total length: %d chars", len(paragraphs), maxln, ln)
 
-		cta.End()
+		cta.Done()
 	}
-
-	ia.EndWithResult("done")
 
 	return nil
 }

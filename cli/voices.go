@@ -31,10 +31,10 @@ func VoicesHandler(u *url.URL) error {
 func Voices(provider, region, key, locale string) error {
 
 	va := nod.Begin("available voices for the selected provider:")
-	defer va.End()
+	defer va.Done()
 
 	if provider == "acs" && region == "" {
-		return va.EndWithError(errors.New("region required for acs"))
+		return errors.New("region required for acs")
 	}
 
 	var szr *chapter_paragraph.Synthesizer
@@ -50,12 +50,12 @@ func Voices(provider, region, key, locale string) error {
 	}
 
 	if err != nil {
-		return va.EndWithError(err)
+		return err
 	}
 
 	voices, err := szr.Voices(locale)
 	if err != nil {
-		return va.EndWithError(err)
+		return err
 	}
 
 	for _, vs := range voices {
@@ -63,10 +63,8 @@ func Voices(provider, region, key, locale string) error {
 			continue
 		}
 		v := nod.Begin("- " + vs)
-		v.End()
+		v.Done()
 	}
-
-	va.EndWithResult("done")
 
 	return nil
 }

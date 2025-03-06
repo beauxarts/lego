@@ -67,7 +67,7 @@ func PackAudioBook(
 	//cover
 
 	pa := nod.Begin("packing audiobook...")
-	defer pa.End()
+	defer pa.Done()
 
 	if extension == "" {
 		extension = defaultExt
@@ -76,29 +76,27 @@ func PackAudioBook(
 	}
 
 	if err := PrepareExternalChapters(directory, extension); err != nil {
-		return pa.EndWithError(err)
+		return err
 	}
 
 	if err := BindChapters(directory, ffmpegCmd, overwrite); err != nil {
-		return pa.EndWithError(err)
+		return err
 	}
 
 	if err := ChapterMetadata(directory, importMetadata, title, author, overwrite); err != nil {
-		return pa.EndWithError(err)
+		return err
 	}
 
 	bookFilename, err := BindBook(directory, ffmpegCmd, overwrite)
 	if err != nil {
-		return pa.EndWithError(err)
+		return err
 	}
 
 	if mp4artCmd != "" && coverFilename != "" {
 		if err := Cover(bookFilename, coverFilename, mp4artCmd); err != nil {
-			return pa.EndWithError(err)
+			return err
 		}
 	}
-
-	pa.EndWithResult("done")
 
 	return nil
 }
