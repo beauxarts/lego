@@ -1,10 +1,10 @@
 package ffmpeg_integration
 
 import (
-	"golang.org/x/exp/maps"
 	"io"
+	"maps"
 	"os"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -64,9 +64,9 @@ func CreateMetadata(
 	var currentOffset int64 = 0
 
 	cfns := maps.Keys(chapterFilenameTitle)
-	sort.Strings(cfns)
+	sortedCfns := slices.Sorted(cfns)
 
-	for _, cfn := range cfns {
+	for _, cfn := range sortedCfns {
 		sb.WriteString(MetadataChapterSection + "\n")
 		sb.WriteString(MetadataTimebaseDefaultValue + "\n")
 		sb.WriteString(MetadataStartPrefix + strconv.FormatInt(currentOffset, 10) + "\n")

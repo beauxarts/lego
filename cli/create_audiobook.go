@@ -104,7 +104,7 @@ func CreateAudiobook(
 	}
 
 	if mp4artCmd != "" && coverFilename != "" {
-		if err := Cover(bookFilename, coverFilename, mp4artCmd); err != nil {
+		if err = Cover(bookFilename, coverFilename, mp4artCmd); err != nil {
 			return err
 		}
 	}
