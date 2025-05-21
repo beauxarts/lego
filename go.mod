@@ -1,4 +1,4 @@
-module github.com/beauxarts/lego
+module github.com/beauxarts/binder
 
 go 1.24.1
 
