@@ -17,7 +17,6 @@ func PackAudiobookHandler(u *url.URL) error {
 	directory := q.Get("directory")
 	extension := q.Get("extension")
 
-	importMetadata := q.Get("import-metadata")
 	title, author := q.Get("title"), q.Get("author")
 
 	ffmpegCmd := q.Get("ffmpeg-cmd")
@@ -45,7 +44,7 @@ func PackAudiobookHandler(u *url.URL) error {
 	return PackAudioBook(
 		directory,
 		extension,
-		importMetadata, title, author,
+		title, author,
 		coverFilename,
 		ffmpegCmd, mp4artCmd,
 		overwrite)
@@ -54,7 +53,7 @@ func PackAudiobookHandler(u *url.URL) error {
 func PackAudioBook(
 	directory string,
 	extension string,
-	importMetadata, title, author string,
+	title, author string,
 	coverFilename string,
 	ffmpegCmd, mp4artCmd string,
 	overwrite bool) error {
@@ -83,7 +82,7 @@ func PackAudioBook(
 		return err
 	}
 
-	if err := ChapterMetadata(directory, importMetadata, title, author, overwrite); err != nil {
+	if err := ChapterMetadata(directory, title, author, overwrite); err != nil {
 		return err
 	}
 

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"github.com/beauxarts/binder/ffmpeg_integration"
 	"github.com/boggydigital/nod"
-	"github.com/boggydigital/wits"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -15,15 +14,14 @@ func ChapterMetadataHandler(u *url.URL) error {
 	q := u.Query()
 
 	directory := q.Get("directory")
-	importMetadata := q.Get("import-metadata")
 	title, author := q.Get("title"), q.Get("author")
 
 	overwrite := q.Has("overwrite")
 
-	return ChapterMetadata(directory, importMetadata, title, author, overwrite)
+	return ChapterMetadata(directory, title, author, overwrite)
 }
 
-func ChapterMetadata(directory, importMetadata, title, author string, overwrite bool) error {
+func ChapterMetadata(directory, title, author string, overwrite bool) error {
 	cma := nod.Begin("generating ffmpeg chapter metadata...")
 	defer cma.Done()
 
@@ -71,24 +69,6 @@ func ChapterMetadata(directory, importMetadata, title, author string, overwrite 
 	}
 
 	metadata := make(map[string]string)
-
-	if _, err := os.Stat(importMetadata); err == nil {
-		imf, err := os.Open(importMetadata)
-		if err != nil {
-			return err
-		}
-		skv, err := wits.ReadSectionKeyValue(imf)
-		if err != nil {
-			return err
-		}
-
-		if len(skv) > 0 {
-			for _, kv := range skv {
-				metadata = kv
-				break
-			}
-		}
-	}
 
 	if title != "" {
 		metadata["title"] = title

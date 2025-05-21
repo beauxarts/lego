@@ -18,7 +18,6 @@ bind-book
 
 chapter-metadata
     directory^
-    import-metadata
     title
     author
     overwrite
@@ -31,7 +30,6 @@ cover
 pack-audiobook
     directory
     extension
-    import-metadata
     title
     author
     cover-filename
