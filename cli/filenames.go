@@ -29,10 +29,6 @@ func relChapterFfmpegOutputFilename(chapterFilename string) string {
 	return fmt.Sprintf(chapterFilename + ffmpegSuffix + listExt)
 }
 
-func relChapterTitleFilename(chapter int, ext string) string {
-	return relChapterParagraphFilename(chapter, 0, ext)
-}
-
 func relChapterParagraphFilename(chapter, paragraph int, ext string) string {
 	return fmt.Sprintf(
 		"%"+filenamePaddedDigits+"d-%"+filenamePaddedDigits+"d"+ext,
