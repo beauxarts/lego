@@ -37,14 +37,8 @@ func main() {
 		"bind-chapters":             cli.BindChaptersHandler,
 		"chapter-metadata":          cli.ChapterMetadataHandler,
 		"cover":                     cli.CoverHandler,
-		"create-audiobook":          cli.CreateAudiobookHandler,
-		"info":                      cli.InfoHandler,
-		"languages":                 cli.LanguagesHandler,
 		"pack-audiobook":            cli.PackAudiobookHandler,
 		"prepare-external-chapters": cli.PrepareExternalChaptersHandler,
-		"synthesize":                cli.SynthesizeHandler,
-		"translate":                 cli.TranslateHandler,
-		"voices":                    cli.VoicesHandler,
 	})
 
 	if err = defs.AssertCommandsHaveHandlers(); err != nil {

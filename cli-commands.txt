@@ -28,34 +28,6 @@ cover
     cover-filename*
     mp4art-cmd$
 
-create-audiobook
-    text-filename^*
-    output-directory
-    provider*=acs,gcp,say^
-    region
-    key-value$
-    key-filename$
-    voice-params&
-    import-metadata
-    title
-    author
-    cover-filename
-    mp4art-cmd$
-    ffmpeg-cmd$
-    overwrite
-
-info
-    filename^*
-    provider*=acs,gcp,say^
-    region
-    cost-per-million-characters
-
-languages
-    language
-    provider*=acs,gcp
-    key-value$
-    key-filename$
-
 pack-audiobook
     directory
     extension
@@ -70,28 +42,3 @@ pack-audiobook
 prepare-external-chapters
     directory
     extension
-
-synthesize
-    text-filename^*
-    provider*=acs,gcp,say^
-    region
-    key-value$
-    key-filename$
-    voice-params*&
-    output-directory
-    overwrite
-
-translate
-    filename^*
-    provider*=acs,gcp
-    from
-    to*
-    key-value$
-    key-filename$
-
-voices
-    provider*=acs,gcp,say^
-    region
-    key-value$
-    key-filename$
-    locale^

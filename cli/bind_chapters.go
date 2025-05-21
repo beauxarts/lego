@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/beauxarts/lego/chapter_paragraph"
 	"github.com/boggydigital/nod"
 	"io"
 	"net/url"
@@ -40,7 +39,7 @@ func BindChapters(directory, ffmpegCmd string, overwrite bool) error {
 	bca := nod.NewProgress("binding paragraphs into chapters...")
 	defer bca.Done()
 
-	mfn := filepath.Join(directory, chapter_paragraph.RelChaptersFilename())
+	mfn := filepath.Join(directory, relChaptersFilename())
 	mf, err := os.Open(mfn)
 	defer mf.Close()
 	if err != nil {
@@ -60,9 +59,7 @@ func BindChapters(directory, ffmpegCmd string, overwrite bool) error {
 
 	bca.TotalInt(len(chapterFiles))
 
-	bfn := filepath.Join(
-		directory,
-		chapter_paragraph.RelBookFilesFilename())
+	bfn := filepath.Join(directory, relBookFilesFilename())
 
 	bf, err := os.Create(bfn)
 	if err != nil {
@@ -74,7 +71,7 @@ func BindChapters(directory, ffmpegCmd string, overwrite bool) error {
 
 		absCfn := filepath.Join(directory, relCfn)
 
-		cbofn := chapter_paragraph.RelChapterFfmpegOutputFilename(absCfn)
+		cbofn := relChapterFfmpegOutputFilename(absCfn)
 
 		if _, err = os.Stat(absCfn); err == nil {
 			if !overwrite {
@@ -87,7 +84,7 @@ func BindChapters(directory, ffmpegCmd string, overwrite bool) error {
 
 		}
 
-		cflfn := chapter_paragraph.RelChapterFilesFilename(absCfn)
+		cflfn := relChapterFilesFilename(absCfn)
 
 		cbof, err := os.Create(cbofn)
 		defer cbof.Close()

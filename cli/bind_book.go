@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/beauxarts/lego/chapter_paragraph"
 	"github.com/beauxarts/lego/ffmpeg_integration"
 	"github.com/boggydigital/nod"
 	"net/url"
@@ -89,7 +88,7 @@ func BindBook(directory, ffmpegCmd string, overwrite bool) (string, error) {
 		}
 	}
 
-	bflfn := filepath.Join(directory, chapter_paragraph.RelBookFilesFilename())
+	bflfn := filepath.Join(directory, relBookFilesFilename())
 
 	args := []string{"-f", "concat", "-i", bflfn, "-i", mfn, "-map_metadata", "1", bfn}
 

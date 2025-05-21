@@ -2,7 +2,6 @@ package cli
 
 import (
 	"bufio"
-	"github.com/beauxarts/lego/chapter_paragraph"
 	"github.com/beauxarts/lego/ffmpeg_integration"
 	"github.com/boggydigital/nod"
 	"github.com/boggydigital/wits"
@@ -39,7 +38,7 @@ func ChapterMetadata(directory, importMetadata, title, author string, overwrite 
 		}
 	}
 
-	ctfn := filepath.Join(directory, chapter_paragraph.RelChaptersFilename())
+	ctfn := filepath.Join(directory, relChaptersFilename())
 	ctf, err := os.Open(ctfn)
 	defer ctf.Close()
 	if err != nil {
@@ -61,9 +60,7 @@ func ChapterMetadata(directory, importMetadata, title, author string, overwrite 
 
 	for cfn := range chaptersFileTitle {
 
-		fofn := filepath.Join(
-			directory,
-			chapter_paragraph.RelChapterFfmpegOutputFilename(cfn))
+		fofn := filepath.Join(directory, relChapterFfmpegOutputFilename(cfn))
 
 		dur, err := ffmpeg_integration.ExtractChapterDuration(fofn)
 		if err != nil {

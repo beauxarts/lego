@@ -1,8 +1,9 @@
 package cli
 
 import (
-	"github.com/beauxarts/lego/chapter_paragraph"
+	"fmt"
 	"github.com/boggydigital/nod"
+	"io"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -10,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 )
+
+const chaptersFilename = "_chapters.txt"
 
 func PrepareExternalChaptersHandler(u *url.URL) error {
 	q := u.Query()
@@ -46,16 +49,16 @@ func PrepareExternalChapters(directory, ext string) error {
 			continue
 		}
 
-		relNew := chapter_paragraph.RelChapterParagraphFilename(chapter+1, 0, ext)
+		relNew := relChapterParagraphFilename(chapter+1, 0, ext)
 
 		absOld := filepath.Join(directory, fn)
 		absNew := filepath.Join(directory, relNew)
 
-		if err := os.Rename(absOld, absNew); err != nil {
+		if err = os.Rename(absOld, absNew); err != nil {
 			return err
 		}
 
-		if err := chapter_paragraph.CreateChapterFilesList(directory, chapter, 0, ext); err != nil {
+		if err = createChapterFilesList(directory, chapter, 0, ext); err != nil {
 			return err
 		}
 
@@ -68,8 +71,52 @@ func PrepareExternalChapters(directory, ext string) error {
 		chapterTitles[c-1] = strconv.Itoa(c)
 	}
 
-	if err := chapter_paragraph.CreateChapters(directory, ext, chapterTitles); err != nil {
+	if err = createChapters(directory, ext, chapterTitles); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func createChapters(directory, ext string, chapterTitles []string) error {
+	ctfn := filepath.Join(
+		directory,
+		chaptersFilename)
+
+	chapterTitlesFile, err := os.Create(ctfn)
+	defer chapterTitlesFile.Close()
+	if err != nil {
+		return err
+	}
+
+	for ci, ct := range chapterTitles {
+		if _, err := io.WriteString(chapterTitlesFile, fmt.Sprintf("%s=%s\n", relChapterFilename(ci+1, ext), ct)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func createChapterFilesList(directory string, chapter, paragraphsCount int, ext string) error {
+
+	chapterFilename := relChapterFilename(chapter+1, ext)
+
+	cfn := filepath.Join(
+		directory,
+		relChapterFilesFilename(chapterFilename))
+
+	chaptersFile, err := os.Create(cfn)
+	defer chaptersFile.Close()
+	if err != nil {
+		return err
+	}
+
+	for pp := -1; pp < paragraphsCount; pp++ {
+		fn := relChapterParagraphFilename(chapter+1, pp+1, ext)
+		if _, err = io.WriteString(chaptersFile, fmt.Sprintf("file '%s'\n", fn)); err != nil {
+			return err
+		}
 	}
 
 	return nil
