@@ -13,13 +13,9 @@ const (
 	MetadataHeader               = ";FFMETADATA1"
 	MetadataChapterSection       = "[CHAPTER]"
 	MetadataTitlePrefix          = "title="
+	MetadataAuthorPrefix         = "author="
 	MetadataArtistPrefix         = "artist="
 	MetadataAlbumPrefix          = "album="
-	MetadataDescriptionPrefix    = "description="
-	MetadataGenrePrefix          = "genre="
-	MetadataYearPrefix           = "year="
-	MetadataCopyrightPrefix      = "copyright="
-	MetadataPerformerPrefix      = "performer="
 	MetadataTimebaseDefaultValue = "TIMEBASE=1/1000"
 	MetadataStartPrefix          = "START="
 	MetadataEndPrefix            = "END="
@@ -29,7 +25,7 @@ const (
 
 func CreateMetadata(
 	filename string,
-	metadata map[string]string,
+	title, author string,
 	chapterFilenameTitle map[string]string,
 	chaptersFileDuration map[string]int64) error {
 
@@ -38,26 +34,13 @@ func CreateMetadata(
 	//https://ffmpeg.org/ffmpeg-all.html#Metadata-1
 	sb.WriteString(MetadataHeader + "\n")
 	// write metadata
-	for property, value := range metadata {
-		switch property {
-		case "title":
-			sb.WriteString(MetadataTitlePrefix + value + "\n")
-			sb.WriteString(MetadataAlbumPrefix + value + "\n")
-		case "authors":
-			sb.WriteString(MetadataArtistPrefix + value + "\n")
-		case "date-created":
-			sb.WriteString(MetadataYearPrefix + value + "\n")
-		case "genres":
-			sb.WriteString(MetadataGenrePrefix + value + "\n")
-		case "copyright-holders":
-			sb.WriteString(MetadataCopyrightPrefix + value + "\n")
-		case "description":
-			sb.WriteString(MetadataDescriptionPrefix + value + "\n")
-		case "readers":
-			sb.WriteString(MetadataPerformerPrefix + value + "\n")
-		default:
-			sb.WriteString(property + "=" + value + "\n")
-		}
+	if title != "" {
+		sb.WriteString(MetadataTitlePrefix + title + "\n")
+		sb.WriteString(MetadataAlbumPrefix + title + "\n")
+	}
+	if author != "" {
+		sb.WriteString(MetadataArtistPrefix + author + "\n")
+		sb.WriteString(MetadataAuthorPrefix + author + "\n")
 	}
 	sb.WriteString("\n")
 
@@ -78,10 +61,10 @@ func CreateMetadata(
 	}
 
 	metadataFile, err := os.Create(filename)
-	defer metadataFile.Close()
 	if err != nil {
 		return err
 	}
+	defer metadataFile.Close()
 
 	_, err = io.WriteString(metadataFile, sb.String())
 	return err

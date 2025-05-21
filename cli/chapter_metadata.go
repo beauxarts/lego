@@ -36,17 +36,17 @@ func ChapterMetadata(directory, title, author string, overwrite bool) error {
 		}
 	}
 
-	ctfn := filepath.Join(directory, relChaptersFilename())
-	ctf, err := os.Open(ctfn)
-	defer ctf.Close()
+	absChaptersFilename := filepath.Join(directory, relChaptersFilename())
+	chaptersFile, err := os.Open(absChaptersFilename)
 	if err != nil {
 		return err
 	}
+	defer chaptersFile.Close()
 
-	chaptersFileTitle := make(map[string]string, 0)
+	chaptersFileTitle := make(map[string]string)
 	chaptersFileDuration := make(map[string]int64)
 
-	scanner := bufio.NewScanner(ctf)
+	scanner := bufio.NewScanner(chaptersFile)
 	for scanner.Scan() {
 		parts := strings.Split(scanner.Text(), "=")
 		if len(parts) < 2 {
@@ -58,9 +58,9 @@ func ChapterMetadata(directory, title, author string, overwrite bool) error {
 
 	for cfn := range chaptersFileTitle {
 
-		fofn := filepath.Join(directory, relChapterFfmpegOutputFilename(cfn))
+		relChapterFoFilename := filepath.Join(directory, relChapterFfmpegOutputFilename(cfn))
 
-		dur, err := ffmpeg_integration.ExtractChapterDuration(fofn)
+		dur, err := ffmpeg_integration.ExtractChapterDuration(relChapterFoFilename)
 		if err != nil {
 			return err
 		}
@@ -68,17 +68,7 @@ func ChapterMetadata(directory, title, author string, overwrite bool) error {
 		chaptersFileDuration[cfn] = dur
 	}
 
-	metadata := make(map[string]string)
-
-	if title != "" {
-		metadata["title"] = title
-	}
-	if author != "" {
-		metadata["author"] = author
-		metadata["artist"] = author
-	}
-
-	if err := ffmpeg_integration.CreateMetadata(mfn, metadata, chaptersFileTitle, chaptersFileDuration); err != nil {
+	if err := ffmpeg_integration.CreateMetadata(mfn, title, author, chaptersFileTitle, chaptersFileDuration); err != nil {
 		return err
 	}
 

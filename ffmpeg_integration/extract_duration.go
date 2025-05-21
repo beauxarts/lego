@@ -17,10 +17,10 @@ var zeroDate = time.Date(0, 1, 1, 0, 0, 0, 0, time.UTC)
 func ExtractChapterDuration(filename string) (int64, error) {
 
 	outputFile, err := os.Open(filename)
-	defer outputFile.Close()
 	if err != nil {
 		return 0, err
 	}
+	defer outputFile.Close()
 
 	var maxDur int64 = 0
 

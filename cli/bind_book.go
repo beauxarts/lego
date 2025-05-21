@@ -88,9 +88,9 @@ func BindBook(directory, ffmpegCmd string, overwrite bool) (string, error) {
 		}
 	}
 
-	bflfn := filepath.Join(directory, relBookFilesFilename())
+	absBookFilesFilename := filepath.Join(directory, relBookFilesFilename())
 
-	args := []string{"-f", "concat", "-i", bflfn, "-i", mfn, "-map_metadata", "1", bfn}
+	args := []string{"-f", "concat", "-i", absBookFilesFilename, "-i", mfn, "-map_metadata", "1", bfn}
 
 	cmd := exec.Command(ffmpegCmd, args...)
 	cmd.Stdout = os.Stdout

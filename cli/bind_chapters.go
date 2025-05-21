@@ -39,73 +39,80 @@ func BindChapters(directory, ffmpegCmd string, overwrite bool) error {
 	bca := nod.NewProgress("binding paragraphs into chapters...")
 	defer bca.Done()
 
-	mfn := filepath.Join(directory, relChaptersFilename())
-	mf, err := os.Open(mfn)
-	defer mf.Close()
+	absChaptersFilename := filepath.Join(directory, relChaptersFilename())
+	chaptersFile, err := os.Open(absChaptersFilename)
 	if err != nil {
 		return err
 	}
+	defer chaptersFile.Close()
 
-	chapterFiles := make([]string, 0)
+	relChapterFilenames := make([]string, 0)
 
-	scanner := bufio.NewScanner(mf)
+	scanner := bufio.NewScanner(chaptersFile)
 	for scanner.Scan() {
 		parts := strings.Split(scanner.Text(), "=")
 		if len(parts) < 1 {
 			continue
 		}
-		chapterFiles = append(chapterFiles, parts[0])
+		relChapterFilenames = append(relChapterFilenames, parts[0])
 	}
 
-	bca.TotalInt(len(chapterFiles))
+	bca.TotalInt(len(relChapterFilenames))
 
-	bfn := filepath.Join(directory, relBookFilesFilename())
+	absBookFilesFilename := filepath.Join(directory, relBookFilesFilename())
 
-	bf, err := os.Create(bfn)
+	bookFilesFile, err := os.Create(absBookFilesFilename)
 	if err != nil {
 		return err
 	}
-	defer bf.Close()
+	defer bookFilesFile.Close()
 
-	for _, relCfn := range chapterFiles {
+	for _, relCfn := range relChapterFilenames {
 
-		absCfn := filepath.Join(directory, relCfn)
-
-		cbofn := relChapterFfmpegOutputFilename(absCfn)
-
-		if _, err = os.Stat(absCfn); err == nil {
-			if !overwrite {
-				continue
-			} else {
-				if err := os.Remove(absCfn); err != nil {
-					return err
-				}
-			}
-
-		}
-
-		cflfn := relChapterFilesFilename(absCfn)
-
-		cbof, err := os.Create(cbofn)
-		defer cbof.Close()
-		if err != nil {
-			return err
-		}
-
-		args := []string{"-f", "concat", "-i", cflfn, "-c", "copy", absCfn}
-		cmd := exec.Command(ffmpegCmd, args...)
-		cmd.Stdout = cbof
-		cmd.Stderr = cbof
-		if err = cmd.Run(); err != nil {
-			return err
-		}
-
-		fileLine := fmt.Sprintf("file '%s'\n", relCfn)
-		if _, err = io.WriteString(bf, fileLine); err != nil {
+		if err = bindChapter(directory, relCfn, bookFilesFile, ffmpegCmd, overwrite); err != nil {
 			return err
 		}
 
 		bca.Increment()
+	}
+
+	return nil
+}
+
+func bindChapter(directory, relChapterFilename string, bookFilesFile io.Writer, ffmpegCmd string, overwrite bool) error {
+	absCfn := filepath.Join(directory, relChapterFilename)
+
+	relChapterFoFilename := relChapterFfmpegOutputFilename(absCfn)
+
+	if _, err := os.Stat(absCfn); err == nil {
+		if !overwrite {
+			return nil
+		} else {
+			if err := os.Remove(absCfn); err != nil {
+				return err
+			}
+		}
+	}
+
+	relChFiFilename := relChapterFilesFilename(absCfn)
+
+	chapterFoFile, err := os.Create(relChapterFoFilename)
+	if err != nil {
+		return err
+	}
+	defer chapterFoFile.Close()
+
+	args := []string{"-f", "concat", "-i", relChFiFilename, "-c", "copy", absCfn}
+	cmd := exec.Command(ffmpegCmd, args...)
+	cmd.Stdout = chapterFoFile
+	cmd.Stderr = chapterFoFile
+	if err = cmd.Run(); err != nil {
+		return err
+	}
+
+	fileLine := fmt.Sprintf("file '%s'\n", relChapterFilename)
+	if _, err = io.WriteString(bookFilesFile, fileLine); err != nil {
+		return err
 	}
 
 	return nil

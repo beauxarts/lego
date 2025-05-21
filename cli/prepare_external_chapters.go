@@ -49,12 +49,12 @@ func PrepareExternalChapters(directory, ext string) error {
 			continue
 		}
 
-		relNew := relChapterParagraphFilename(chapter+1, 0, ext)
+		relOldChPaFilename := relChapterParagraphFilename(chapter+1, 0, ext)
 
-		absOld := filepath.Join(directory, fn)
-		absNew := filepath.Join(directory, relNew)
+		absOldChPaFilename := filepath.Join(directory, fn)
+		absNewChPaFilename := filepath.Join(directory, relOldChPaFilename)
 
-		if err = os.Rename(absOld, absNew); err != nil {
+		if err = os.Rename(absOldChPaFilename, absNewChPaFilename); err != nil {
 			return err
 		}
 
@@ -84,10 +84,10 @@ func createChapters(directory, ext string, chapterTitles []string) error {
 		chaptersFilename)
 
 	chapterTitlesFile, err := os.Create(ctfn)
-	defer chapterTitlesFile.Close()
 	if err != nil {
 		return err
 	}
+	defer chapterTitlesFile.Close()
 
 	for ci, ct := range chapterTitles {
 		if _, err := io.WriteString(chapterTitlesFile, fmt.Sprintf("%s=%s\n", relChapterFilename(ci+1, ext), ct)); err != nil {
@@ -102,19 +102,17 @@ func createChapterFilesList(directory string, chapter, paragraphsCount int, ext 
 
 	chapterFilename := relChapterFilename(chapter+1, ext)
 
-	cfn := filepath.Join(
-		directory,
-		relChapterFilesFilename(chapterFilename))
+	absChFiFilename := filepath.Join(directory, relChapterFilesFilename(chapterFilename))
 
-	chaptersFile, err := os.Create(cfn)
-	defer chaptersFile.Close()
+	chaptersFile, err := os.Create(absChFiFilename)
 	if err != nil {
 		return err
 	}
+	defer chaptersFile.Close()
 
 	for pp := -1; pp < paragraphsCount; pp++ {
-		fn := relChapterParagraphFilename(chapter+1, pp+1, ext)
-		if _, err = io.WriteString(chaptersFile, fmt.Sprintf("file '%s'\n", fn)); err != nil {
+		relChPaFilename := relChapterParagraphFilename(chapter+1, pp+1, ext)
+		if _, err = io.WriteString(chaptersFile, fmt.Sprintf("file '%s'\n", relChPaFilename)); err != nil {
 			return err
 		}
 	}
