@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	_ "embed"
-	"github.com/beauxarts/lego/cli"
+	"github.com/beauxarts/binder/cli"
 	"github.com/boggydigital/clo"
 	"github.com/boggydigital/nod"
 	"log"
@@ -21,7 +21,7 @@ func main() {
 
 	nod.EnableStdOutPresenter()
 
-	ns := nod.NewProgress("lego is serving your literature needs")
+	ns := nod.NewProgress("binder is packing your audiobooks")
 	defer ns.Done()
 
 	defs, err := clo.Load(

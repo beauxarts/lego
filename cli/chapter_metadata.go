@@ -2,7 +2,7 @@ package cli
 
 import (
 	"bufio"
-	"github.com/beauxarts/lego/ffmpeg_integration"
+	"github.com/beauxarts/binder/ffmpeg_integration"
 	"github.com/boggydigital/nod"
 	"github.com/boggydigital/wits"
 	"net/url"

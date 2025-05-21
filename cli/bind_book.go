@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/beauxarts/lego/ffmpeg_integration"
+	"github.com/beauxarts/binder/ffmpeg_integration"
 	"github.com/boggydigital/nod"
 	"net/url"
 	"os"
